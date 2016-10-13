@@ -26,6 +26,12 @@ display_board_lines([Line | Other_lines]) :-
 	display_board_line_pieces(Line), nl, display_board_lines(Other_lines).
 display_board_lines([]).
 
+display_board_line_pieces([Piece | [' ' | _]]) :-
+	write(Piece).
 display_board_line_pieces([Piece | Other_pieces]) :-
-	write(Piece), write('-'), display_board_line_pieces(Other_pieces).
-display_board_line_pieces([]).
+	write(Piece), display_board_line_conection([Piece | Other_pieces]), display_board_line_pieces(Other_pieces).
+display_board_line_pieces([Piece | []]).
+
+display_board_line_conection([Piece | Other_pieces]) :-
+	Piece \== ' ', Other_pieces \== [], write('-').
+display_board_line_conection([Piece | Other_pieces]) :- Piece == ' '.
