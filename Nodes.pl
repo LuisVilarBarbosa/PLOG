@@ -1,3 +1,5 @@
+:-use_module(library(lists)).
+
 /* Game pieces */
 road('-').
 conduits('X').
@@ -21,71 +23,44 @@ board([
 /* Display */
 display_board(board) :-	/* board is not a variable so no question is asked */
 	board(Board), 
-	display_board_lines(Board).
+	display_board_rows(Board).
 	
-display_board_lines([]).
-display_board_lines([Line | Other_lines]) :-
-	display_board_line_pieces(Line), 
+display_board_rows([Row | []]) :-
+	display_board_row_pieces(Row).
+display_board_rows([Row | Other_rows]) :-
+	display_board_row_pieces(Row), 
 	nl, 
-	display_board_lines_mid(Line),
+	display_board_middle_up_row(Row),
 	nl,
-	display_board_lines(Other_lines).
+	display_board_rows(Other_rows).
 
-
-display_board_line_pieces([Piece | []]).
-display_board_line_pieces([Piece | [' ' | _]]) :-
+display_board_row_pieces([Piece | []]) :-
 	write(Piece).
-display_board_line_pieces([Piece | Other_pieces]) :-
-	write(Piece), 
-	display_board_line_conection([Piece | Other_pieces]), 
-	display_board_line_pieces(Other_pieces).
+display_board_row_pieces([' ' | Other_pieces]) :-
+	write('  '),
+	display_board_row_pieces(Other_pieces).
+display_board_row_pieces([Piece | [' ' | _]]) :-
+	write(Piece).
+display_board_row_pieces([Piece | Other_pieces]) :-
+	write(Piece),
+	write('-'),
+	display_board_row_pieces(Other_pieces).
 
-display_board_line_conection([Piece | Other_pieces]) :-
-	Piece \== ' ', 
-	Other_pieces \== [], 
-	write('-').
-	
-display_board_line_conection([Piece | Other_pieces]) :- 
-	Piece == ' ',
-	write(' ').
-
-display_board_lines_mid([Piece | []]).
-display_board_lines_mid([Piece | Other_pieces]) :-
-	Piece == ' ',
-	Other_pieces == ' ',
-	write(' '),
-	display_board_lines_mid(Other_pieces).
-display_board_lines_mid([Piece | Other_pieces]) :-	% |
-	Piece == ' ', 
-	Other_pieces \== [],
-	write(' /'),
-	display_board_lines_mid(Other_pieces).
-
-display_board_lines_mid([Piece | Other_pieces]) :-	%|\
-	Piece \== ' ', 
-	Other_pieces \== [],
-	Other_pieces == ' ',
-	write('|\ '),
-	display_board_lines_mid(Other_pieces).
-display_board_lines_mid([Piece | Other_pieces]) :-	%/|
-	Piece == ' ', 
-	Other_pieces \== [],
-	Other_pieces \== ' ',
-	write(' /|'),
-	display_board_lines_mid(Other_pieces).
-display_board_lines_mid([Piece | Other_pieces]) :-	%|
-	Piece \== ' ', 
-	Other_pieces == [],
-	write('|'),
-	display_board_lines_mid(Other_pieces).
-display_board_lines_mid([Piece | Other_pieces]) :-	%|X
-	Piece \== ' ', 
-	Other_pieces \== [],
-	Other_pieces \== ' ',
+display_board_middle_up_row([Piece | []]):-
+	write('|').
+display_board_middle_up_row([' ' | [Other_piece | Other_pieces]]) :-
+	Other_piece \== ' ',
+	write('/ '),
+	display_board_middle_up_row(Other_pieces).
+display_board_middle_up_row([' ' | Other_pieces]) :-
+	write('  '),
+	display_board_middle_up_row(Other_pieces).
+display_board_middle_up_row([Piece | [' ' | Other_pieces]]) :-	/* how it works? */
 	write('|X'),
-	display_board_lines_mid(Other_pieces).
-	
-
+	display_board_middle_up_row(Other_pieces).
+display_board_middle_up_row([Piece | Other_pieces]) :-
+	write('|X'),
+	display_board_middle_up_row(Other_pieces).
 
 /* 
 recomendaçoes do prof: 
@@ -107,11 +82,11 @@ print_board([Line|Rest]):-
 
 print_line([]).
 print_line([Elem|Rest]):-
-	translate(Elem,Elem), %este traduz o Elem e guarda em Elem
-	write(Elem),
+	translate(Elem,TElem), %este traduz o Elem e guarda em Elem
+	write(TElem),
 	print_line(Rest).
 	
-translate(0,' ').
-translate(1,'X').
-translate(2,'0').
+translate(0, ' ').
+translate(1, 'X').
+translate(2, '0').
 */
