@@ -27,7 +27,8 @@ display_board_lines([]).
 display_board_lines([Line | Other_lines]) :-
 	display_board_line_pieces(Line), 
 	nl, 
-	display_board_lines_mid(Line), 
+	display_board_lines_mid(Line),
+	nl,
 	display_board_lines(Other_lines).
 
 
@@ -48,10 +49,42 @@ display_board_line_conection([Piece | Other_pieces]) :-
 	Piece == ' ',
 	write(' ').
 
-display_board_lines_mid([]).
+display_board_lines_mid([Piece | []]).
 display_board_lines_mid([Piece | Other_pieces]) :-
-	write('  '), write('|'), write('X'), write('|'), write('X'),write('|'), write('X'), write('|'), write('X'), write('|'), write('X'), write('|'), write('X'), write('|'), write('X'), write('|'), write('X'),nl.
+	Piece == ' ',
+	Other_pieces == ' ',
+	write(' '),
+	display_board_lines_mid(Other_pieces).
+display_board_lines_mid([Piece | Other_pieces]) :-	% |
+	Piece == ' ', 
+	Other_pieces \== [],
+	write(' /'),
+	display_board_lines_mid(Other_pieces).
 
+display_board_lines_mid([Piece | Other_pieces]) :-	%|\
+	Piece \== ' ', 
+	Other_pieces \== [],
+	Other_pieces == ' ',
+	write('|\ '),
+	display_board_lines_mid(Other_pieces).
+display_board_lines_mid([Piece | Other_pieces]) :-	%/|
+	Piece == ' ', 
+	Other_pieces \== [],
+	Other_pieces \== ' ',
+	write(' /|'),
+	display_board_lines_mid(Other_pieces).
+display_board_lines_mid([Piece | Other_pieces]) :-	%|
+	Piece \== ' ', 
+	Other_pieces == [],
+	write('|'),
+	display_board_lines_mid(Other_pieces).
+display_board_lines_mid([Piece | Other_pieces]) :-	%|X
+	Piece \== ' ', 
+	Other_pieces \== [],
+	Other_pieces \== ' ',
+	write('|X'),
+	display_board_lines_mid(Other_pieces).
+	
 
 
 /* 
@@ -82,11 +115,3 @@ translate(0,' ').
 translate(1,'X').
 translate(2,'0').
 */
-=======
-	write(Piece), display_board_line_conection([Piece | Other_pieces]), display_board_line_pieces(Other_pieces).
-display_board_line_pieces([Piece | []]).
-
-display_board_line_conection([Piece | Other_pieces]) :-
-	Piece \== ' ', Other_pieces \== [], write('-').
-display_board_line_conection([Piece | Other_pieces]) :- Piece == ' '.
->>>>>>> origin/master
