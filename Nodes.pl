@@ -22,14 +22,38 @@ next_player(p2, p1).
 /* Board */
 board([
 	[' ', ' ', u1, u1, n1, u1, u1, ' ', ' '],
-	[' ', sp, sp, u1, u1, u1, sp, sp, ' '],
-	[sp, sp, sp, sp, u1, sp, sp, sp, sp],
-	[sp, sp, sp, sp, sp, sp, sp, sp, sp],
-	[sp, sp, sp, sp, sp, sp, sp, sp, sp],
-	[sp, sp, sp, sp, sp, sp, sp, sp, sp],
-	[sp, sp, sp, sp, u2, sp, sp, sp, sp],
-	[' ', sp, sp, u2, u2, u2, sp, sp, ' '],
+	[' ',  sp, sp, u1, u1, u1, sp,  sp, ' '],
+	[ sp,  sp, sp, sp, u1, sp, sp,  sp,  sp],
+	[ sp,  sp, sp, sp, sp, sp, sp,  sp,  sp],
+	[ sp,  sp, sp, sp, sp, sp, sp,  sp,  sp],
+	[ sp,  sp, sp, sp, sp, sp, sp,  sp,  sp],
+	[ sp,  sp, sp, sp, u2, sp, sp,  sp,  sp],
+	[' ',  sp, sp, u2, u2, u2, sp,  sp, ' '],
 	[' ', ' ', u2, u2, n2, u2, u2, ' ', ' ']
+	]).
+
+intermediate_board([
+	[' ', ' ', sp, sp, sp, u1, sp, ' ', ' '],
+	[' ',  sp, u1, u1, n1, u1, sp,  sp, ' '],
+	[ sp,  sp, sp, sp, u1, sp, sp,  sp,  sp],
+	[ sp,  u1, sp, sp, sp, sp, sp,  u1,  sp],
+	[ sp,  sp, sp, sp, u1, sp, sp,  sp,  sp],
+	[ sp,  sp, sp, sp, sp, sp, sp,  sp,  sp],
+	[ sp,  sp, sp, u2, u2, sp, sp,  sp,  sp],
+	[' ',  sp, sp, u2, n2, u2, sp,  sp, ' '],
+	[' ', ' ', u2, u2, sp, u2, u2, ' ', ' ']
+	]).
+
+final_board([
+	[' ', ' ', sp, sp, sp, sp, sp, ' ', ' '],
+	[' ',  u1, sp, sp, sp, u1, sp,  sp, ' '],
+	[ sp,  sp, u1, sp, u1, n1, sp,  sp,  sp],
+	[ sp,  sp, sp, u1, n2, u1, sp,  sp,  sp],
+	[ sp,  sp, sp, sp, u1, sp, sp,  sp,  sp],
+	[ sp,  sp, u2, u1, sp, sp, sp,  u2,  sp],
+	[ sp,  sp, u2, sp, sp, sp, sp,  sp,  sp],
+	[' ',  sp, u2, u2, sp, sp, u2,  sp, ' '],
+	[' ', ' ', sp, u2, sp, u2, sp, ' ', ' ']
 	]).
 
 /* Display */
