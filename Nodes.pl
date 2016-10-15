@@ -76,7 +76,7 @@ display_board_row_pieces([Piece | Other_pieces]) :-
 display_board_middle_up_row([Piece | []]):-
 	write('|').
 display_board_middle_up_row([Piece | [' ']]):-
-	write('|/').
+	write('|\\').
 display_board_middle_up_row([Piece | [Piece | ' ']]):-
 	write('|\\').
 display_board_middle_up_row([' ' | [Other_piece | Other_pieces]]) :-
