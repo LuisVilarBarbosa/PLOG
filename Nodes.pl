@@ -77,7 +77,7 @@ display_board_middle_up_row([Piece | []]):-
 	write('|').
 display_board_middle_up_row([Piece | [' ' | _]]) :-
 	Piece \== ' ',
-	write('|\\').
+	write('|X|\\').
 display_board_middle_up_row([' ' | [Other_piece | Other_pieces]]) :-
 	Other_piece \== ' ',
 	write(' /'),
@@ -96,7 +96,7 @@ display_board_middle_bottom_row([Piece | []]):-
 	write('|').
 display_board_middle_bottom_row([Piece | [' ' | _]]) :-
 	Piece \== ' ',
-	write('|/').
+	write('|X|/').
 display_board_middle_bottom_row([' ' | [Other_piece | Other_pieces]]) :-
 	Other_piece \== ' ',
 	write(' \\'),
