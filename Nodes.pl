@@ -71,10 +71,10 @@ display_board_rows([Row | Other_rows], Board) :-	/* Display board bottom half */
 	nl,
 	display_board_rows(Other_rows, Board).
 
-translate(n1, 'N').
-translate(n2, 'M').
-translate(u1, 'U').
-translate(u2, 'Y').
+translate(n1, 'A').
+translate(u1, 'B').
+translate(n2, 'S').
+translate(u2, 'T').
 translate(X, X).
 	
 display_board_row_pieces([Piece | []]) :-
@@ -92,7 +92,7 @@ display_board_row_pieces([Piece | Other_pieces]) :-
 	write('-'),
 	display_board_row_pieces(Other_pieces).
 
-display_board_middle_up_row([Piece | []]):-
+display_board_middle_up_row([Piece | []]) :-
 	write('|').
 display_board_middle_up_row([Piece | [' ' | _]]) :-
 	Piece \== ' ',
@@ -111,7 +111,7 @@ display_board_middle_up_row([Piece | Other_pieces]) :-
 	write('|X'),
 	display_board_middle_up_row(Other_pieces).
 
-display_board_middle_bottom_row([Piece | []]):-
+display_board_middle_bottom_row([Piece | []]) :-
 	write('|').
 display_board_middle_bottom_row([Piece | [' ' | _]]) :-
 	Piece \== ' ',
