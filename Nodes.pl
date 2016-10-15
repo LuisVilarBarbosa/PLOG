@@ -1,23 +1,33 @@
 :-use_module(library(lists)).
 
+/* Players */
+player(p1).
+player(p2).
+
+/* changes player */
+next_player(p1, p2).
+next_player(p2, p1).
+
 /* Game pieces */
 road('-').
 conduits('X').
-node('N').
-unit('U').
 space('O').
+node(n1).
+node(n2).
+unit(u1).
+unit(u2).
 
 /* Board */
 board([
-	[' ', ' ', 'O', 'O', 'O', 'O', 'O', ' ', ' '],
-	[' ', 'O', 'O', 'O', 'O', 'O', 'O', 'O', ' '],
+	[' ', ' ', u1, u1, n1, u1, u1, ' ', ' '],
+	[' ', 'O', 'O', u1, u1, u1, 'O', 'O', ' '],
+	['O', 'O', 'O', 'O', u1, 'O', 'O', 'O', 'O'],
 	['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O'],
 	['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O'],
 	['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O'],
-	['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O'],
-	['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O'],
-	[' ', 'O', 'O', 'O', 'O', 'O', 'O', 'O', ' '],
-	[' ', ' ', 'O', 'O', 'O', 'O', 'O', ' ', ' ']
+	['O', 'O', 'O', 'O', u2, 'O', 'O', 'O', 'O'],
+	[' ', 'O', 'O', u2, u2, u2, 'O', 'O', ' '],
+	[' ', ' ', u2, u2, n2, u2, u2, ' ', ' ']
 	]).
 
 /* Display */
@@ -61,15 +71,24 @@ display_board_rows([Row | Other_rows], Board) :-	/* Display board bottom half */
 	nl,
 	display_board_rows(Other_rows, Board).
 
+translate(n1, 'N').
+translate(n2, 'M').
+translate(u1, 'U').
+translate(u2, 'Y').
+translate(X, X).
+	
 display_board_row_pieces([Piece | []]) :-
-	write(Piece).
+	translate(Piece, TPiece),
+	write(TPiece).
 display_board_row_pieces([' ' | Other_pieces]) :-
 	write('  '),
 	display_board_row_pieces(Other_pieces).
 display_board_row_pieces([Piece | [' ' | _]]) :-
-	write(Piece).
+	translate(Piece, TPiece),
+	write(TPiece).
 display_board_row_pieces([Piece | Other_pieces]) :-
-	write(Piece),
+	translate(Piece, TPiece),
+	write(TPiece),
 	write('-'),
 	display_board_row_pieces(Other_pieces).
 
@@ -110,6 +129,7 @@ display_board_middle_bottom_row([Piece | [' ' | Other_pieces]]) :-	%how it works
 display_board_middle_bottom_row([Piece | Other_pieces]) :-
 	write('|X'),
 	display_board_middle_bottom_row(Other_pieces).
+
 
 /* 
 recomendaçoes do prof: 
