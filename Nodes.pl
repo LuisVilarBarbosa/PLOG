@@ -33,7 +33,7 @@ display_board_rows([Row | Other_rows], Board) :-	/* Display board up half */
 	length(Board, All_board_length),
 	length(Other_rows, Left_board_length),
 	Left_board_length1 is Left_board_length + 1,
-	Half_board_length is All_board_length / 2,
+	Half_board_length is All_board_length >> 1,		% integer division by 2
 	Left_board_length1 > Half_board_length,
 	display_board_row_pieces(Row), 
 	nl, 
@@ -44,7 +44,7 @@ display_board_rows([Row | Other_rows], Board) :-	/* Display board middle */
 	length(Board, All_board_length),
 	length(Other_rows, Left_board_length),
 	Left_board_length1 is Left_board_length + 1,
-	Half_board_length is All_board_length / 2,
+	Half_board_length is All_board_length >> 1,		% integer division by 2
 	Left_board_length1 == Half_board_length,
 	display_board_row_pieces(Row), 
 	nl,
@@ -53,7 +53,7 @@ display_board_rows([Row | Other_rows], Board) :-	/* Display board bottom half */
 	length(Board, All_board_length),
 	length(Other_rows, Left_board_length),
 	Left_board_length1 is Left_board_length + 1,
-	Half_board_length is All_board_length / 2,
+	Half_board_length is All_board_length >> 1,		% integer division by 2
 	Left_board_length1 < Half_board_length,
 	display_board_middle_bottom_row(Row),
 	nl, 
