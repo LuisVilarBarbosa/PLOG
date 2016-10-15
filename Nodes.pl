@@ -37,7 +37,7 @@ display_board(board) :-	/* board is not a variable so no question is asked */
 	board(Board), 
 	display_board_rows(Board, Board).
 	
-display_board_rows([Row | []], Board) :-
+display_board_rows([Row | []], _Board) :-
 	display_board_middle_bottom_row(Row),
 	nl,
 	display_board_row_pieces(Row).
@@ -95,7 +95,7 @@ display_board_row_pieces([Piece | Other_pieces]) :-
 	write('-'),
 	display_board_row_pieces(Other_pieces).
 
-display_board_middle_up_row([Piece | []]) :-
+display_board_middle_up_row([_Piece | []]) :-
 	write('|').
 display_board_middle_up_row([Piece | [' ' | _]]) :-
 	Piece \== ' ',
@@ -107,11 +107,11 @@ display_board_middle_up_row([' ' | [Other_piece | Other_pieces]]) :-
 display_board_middle_up_row([' ' | Other_pieces]) :-
 	write('  '),
 	display_board_middle_up_row(Other_pieces).
-display_board_middle_up_row([Piece | Other_pieces]) :-
+display_board_middle_up_row([_Piece | Other_pieces]) :-
 	write('|X'),
 	display_board_middle_up_row(Other_pieces).
 
-display_board_middle_bottom_row([Piece | []]) :-
+display_board_middle_bottom_row([_Piece | []]) :-
 	write('|').
 display_board_middle_bottom_row([Piece | [' ' | _]]) :-
 	Piece \== ' ',
@@ -123,7 +123,7 @@ display_board_middle_bottom_row([' ' | [Other_piece | Other_pieces]]) :-
 display_board_middle_bottom_row([' ' | Other_pieces]) :-
 	write('  '),
 	display_board_middle_bottom_row(Other_pieces).
-display_board_middle_bottom_row([Piece | Other_pieces]) :-
+display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 	write('|X'),
 	display_board_middle_bottom_row(Other_pieces).
 
