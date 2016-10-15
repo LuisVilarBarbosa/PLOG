@@ -46,16 +46,21 @@ display_board_row_pieces([Piece | Other_pieces]) :-
 	write('-'),
 	display_board_row_pieces(Other_pieces).
 
+
 display_board_middle_up_row([Piece | []]):-
 	write('|').
+display_board_middle_up_row([Piece | [' ']]):-
+	write('|/').
+display_board_middle_up_row([Piece | [Piece | ' ']]):-
+	write('|\\').
 display_board_middle_up_row([' ' | [Other_piece | Other_pieces]]) :-
 	Other_piece \== ' ',
-	write('/ '),
+	write(' /'),
 	display_board_middle_up_row(Other_pieces).
 display_board_middle_up_row([' ' | Other_pieces]) :-
 	write('  '),
 	display_board_middle_up_row(Other_pieces).
-display_board_middle_up_row([Piece | [' ' | Other_pieces]]) :-	/* how it works? */
+display_board_middle_up_row([Piece | [' ' | Other_pieces]]) :-	%how it works? 
 	write('|X'),
 	display_board_middle_up_row(Other_pieces).
 display_board_middle_up_row([Piece | Other_pieces]) :-
