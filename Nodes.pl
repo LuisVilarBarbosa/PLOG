@@ -3,7 +3,8 @@
 /*
 Game legend:
 - -> road
-X -> conduit
+| -> road
+X -> conduits
 O -> space -> sp
 A -> player 1 node -> n1
 B -> player 1 unit -> u1
@@ -57,7 +58,7 @@ final_board([
 	]).
 
 /* Display */
-display_board(board) :-	/* board is not a variable so no question is asked */
+display_board(board) :-
 	board(Board), 
 	display_board_rows(Board, Board).
 	
