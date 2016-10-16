@@ -2,20 +2,20 @@
 
 /*
 Game legend:
-'-' -> road
-'X' -> conduit
-'O' -> space -> sp
-'A' -> player 1 node -> n1
-'B' -> player 2 unit -> u1
-'S' -> player 2 node -> n2
-'T' -> player 2 unit -> u2
+- -> road
+X -> conduit
+O -> space -> sp
+A -> player 1 node -> n1
+B -> player 1 unit -> u1
+S -> player 2 node -> n2
+T -> player 2 unit -> u2
  */
 
 /* Players */
 player(p1).
 player(p2).
 
-/* changes player */
+/* Changes player */
 next_player(p1, p2).
 next_player(p2, p1).
 
