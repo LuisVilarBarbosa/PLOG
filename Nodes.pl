@@ -1,5 +1,8 @@
 :-use_module(library(lists)).
 
+:- dynamic player/1.
+:- dynamic state/2.
+
 /*
 Game legend:
 - -> road
@@ -15,10 +18,6 @@ T -> player 2 unit -> u2
 /* Players */
 player(p1).
 player(p2).
-
-/* Changes player */
-next_player(p1, p2).
-next_player(p2, p1).
 
 /* Board */
 board([
@@ -56,6 +55,9 @@ final_board([
 	[' ',  sp, u2, u2, sp, sp, u2,  sp, ' '],
 	[' ', ' ', sp, u2, sp, u2, sp, ' ', ' ']
 	]).
+
+/* State */
+state(Player, board(Board)).
 
 /* Display */
 display_board(board) :-
@@ -151,6 +153,76 @@ display_board_middle_bottom_row([' ' | Other_pieces]) :-
 display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 	write('|X'),
 	display_board_middle_bottom_row(Other_pieces).
+
+game(Type) :-
+	write('Player 1 (younger): '),
+	read(Player1),
+	write('Player 2 (older): '),
+	read(Player2),
+	retract(player(p1)),
+	assert(player(Player1)),
+	retract(player(p2)),
+	assert(player(Player2)),
+	retract(state(_, Board)),
+	assert(state(Player1, Board)),	/* the youngest player begins the game */
+	repeat,
+		play(Type),
+		verify_game_over,
+	state(Player, _),
+	next_player(Player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
+	show_results(Winner).
+
+play(cc) :-
+	retract(state(Player, Actual_board)),
+%	best_move(Player, Actual_board, Best_board),
+	display_board(Best_board),
+	next_player(Player, Next),
+	assert(state(Next, Best_board)),
+	!.
+
+% play(hh) :-
+
+% play(ch) :-
+
+% rule(Name, Player, Board, New_board) :-
+%	...
+%	set_piece(Board, X, Y, Piece, New_board).
+
+best_move(Player, Board, Best) :-
+	findall(Aux_board, rule(_, Player, Board, Aux_board), Possible_boards),
+	select_best(Possible_boards, Best).
+
+quality(Board, Player, Value).
+
+select_best(Possible_boards, Best) :-
+	findall(Aux_board_value, quality(Aux_board, Player, Value), List_boards_values).
+
+verify_game_over :- \+ fail.
+
+next_player(Player, Next) :- player(Player), player(Next), Player \= Next.
+
+show_results(Winner) :- format('~NWinner: ~s~N', Winner).
+
+/* if 'Y' is invalid, the same list will be returned */
+set_piece([Line | Other_lines], X, Y, New_piece, [Line | Other_new_lines]) :-
+	Y =\= 1,
+	Next_Y is Y - 1,
+	set_piece(Other_lines, X, Next_Y, New_piece, Other_new_lines).
+set_piece([Line | Other_lines], X, 1, New_piece, [New_line | Other_new_lines]) :-
+	set_cell(X, New_piece, Line, New_line),
+	Next_Y is 0,
+	set_piece(Other_lines, X, Next_Y, New_piece, Other_new_lines).
+set_piece([], _, _, _, []).
+
+/* if 'X' is invalid, the same list will be returned */
+set_cell(X, New_piece, [Piece | Rest_line], [Piece | Rest_new_line]) :-
+	X =\= 1,
+	Next_X is X - 1,
+	set_cell(Next_X, New_piece, Rest_line, Rest_new_line).
+set_cell(1, New_piece, [Piece | Rest_line], [New_piece | Rest_new_line]) :-
+	Next_X is 0,
+	set_cell(Next_X, New_piece, Rest_line, Rest_new_line).
+set_cell(_, _, [], []).
 
 
 /* 
