@@ -155,6 +155,7 @@ display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 	write('|X'),
 	display_board_middle_bottom_row(Other_pieces).
 
+/* Game logic */
 game(Type) :-
 	write('Player 1 (younger): '),
 	read(Player1),
@@ -200,31 +201,31 @@ select_best(Possible_boards, Best) :-
 
 verify_game_over :-
 	state(_, Board),
-	find_node(Board, X, Y),
-	verify_blocked(Board, X, Y).
+	find_node(Board, X, Y, Node),
+	verify_blocked(Board, Node, X, Y).
 
-find_node(Board, X, Y) :-
-	find_node_aux(Board, 1, X, Y).
+find_node(Board, X, Y, Node) :-
+	find_node_aux(Board, 1, X, Y, Node).
 
-find_node_aux([Line | Other_lines], Pos_y, X, Y) :-
-	(nth1(X, Line, n1); nth1(X, Line, n2)),
+find_node_aux([Line | Other_lines], Pos_y, X, Y, Node) :-
+	((nth1(X, Line, n1), Node = n1); (nth1(X, Line, n2), Node = n2)),
 	Y = Pos_y.
-find_node_aux([Line | Other_lines], Pos_y, X, Y) :-
+find_node_aux([Line | Other_lines], Pos_y, X, Y, Node) :-
 	Next_pos_y is Pos_y + 1,
-	find_node_aux(Other_lines, Next_pos_y, X, Y).
+	find_node_aux(Other_lines, Next_pos_y, X, Y, Node).
 
-verify_blocked(Board, X, Y) :-
-	verify_blocked_left(Board, X, Y),
-	verify_blocked_right(Board, X, Y),
-	verify_blocked_up(Board, X, Y),
-	verify_blocked_down(Board, X, Y).
+verify_blocked(Board, Node, X, Y) :-
+	((Node = n1, Enemy_unit = u2); (Node = n2, Enemy_unit = u1)),
+	verify_blocked_left(Board, Enemy_unit, X, Y),
+	verify_blocked_right(Board, Enemy_unit, X, Y),
+	verify_blocked_up(Board, Enemy_unit, X, Y),
+	verify_blocked_down(Board, Enemy_unit, X, Y).
 
 /* if 'X' or 'Y' out of borders 'yes' will be returned */
-% must know if the enemy is u1 or u2 and verify if blocked by the enemy
-verify_blocked_left(Board, X, Y) :- X2 is X - 1, (X2 < 1; (nth1(Y, Board, Line), nth1(X2, Line, u1))).
-verify_blocked_right(Board, X, Y) :- X2 is X + 1, (nth1(Y, Board, Line), length(Line, Length_x), (X2 > Length_x; nth1(X2, Line, u1))).
-verify_blocked_up(Board, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Line), nth1(X, Line, u1))).
-verify_blocked_down(Board, X, Y) :- Y2 is Y + 1, length(Board, Length_y), (Y2 > Length_y; (nth1(Y2, Board, Line), nth1(X, Line, u1))).
+verify_blocked_left(Board, Enemy_unit, X, Y) :- X2 is X - 1, (X2 < 1; (nth1(Y, Board, Line), nth1(X2, Line, Enemy_unit))).
+verify_blocked_right(Board, Enemy_unit, X, Y) :- X2 is X + 1, (nth1(Y, Board, Line), length(Line, Length_x), (X2 > Length_x; nth1(X2, Line, Enemy_unit))).
+verify_blocked_up(Board, Enemy_unit, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Line), nth1(X, Line, Enemy_unit))).
+verify_blocked_down(Board, Enemy_unit, X, Y) :- Y2 is Y + 1, length(Board, Length_y), (Y2 > Length_y; (nth1(Y2, Board, Line), nth1(X, Line, Enemy_unit))).
 
 next_player(Player, Next) :- player(Player), player(Next), Player \= Next.
 
