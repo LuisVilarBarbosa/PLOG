@@ -186,12 +186,17 @@ play(cc) :-
 
 % play(ch) :-
 
-% rule(Name, Player, Board, New_board) :-
+% rule(Name, Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Board, New_board) :-
+	/* Applicability pre-conditions verifications */
 %	...
-%	set_piece(Board, X, Y, Piece, New_board).
+	/* action / movement */
+%	nth1(Piece_orig_y, Board, Line),
+%	nth1(Piece_orig_x, Line, Piece),
+%	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
+%	set_piece(New_board2, Piece_new_x, Piece_new_y, Piece, New_board).
 
 best_move(Player, Board, Best) :-
-	findall(Aux_board, rule(_, Player, Board, Aux_board), Possible_boards),
+	findall(Aux_board, rule(_, Player, _, _, _, _, Board, Aux_board), Possible_boards),
 	select_best(Possible_boards, Best).
 
 quality(Board, Player, Value).
