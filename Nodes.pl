@@ -19,6 +19,13 @@ T -> player 2 unit -> u2
 player(p1).
 player(p2).
 
+%matriznos(H), find_node(H, X, Y, n1).
+matriznos([
+	[sp, sp, u1, u1],
+	[sp, sp, n1, n2],
+	[sp, n2, sp, sp]
+	]).
+
 /* Board */
 board([
 	[' ', ' ', u1, u1, n1, u1, u1, ' ', ' '],
@@ -60,9 +67,10 @@ final_board([
 state(Player, board(Board)).
 
 /* Display */
-display_board(board) :-
+display_board(Board) :-
 	board(Board), 
 	display_board_rows(Board, Board),
+	nl,
 	nl.
 	
 display_board_rows([Row | []], _Board) :-
@@ -186,17 +194,155 @@ play(cc) :-
 
 % play(ch) :-
 
-% rule(Name, Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Board, New_board) :-
-	/* Applicability pre-conditions verifications */
-%	...
+% rule(Name, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
+/* Applicability pre-conditions verifications */
+%	Caso peça: fazer verificaçao se pode mover para cima, esquerda direita baixo. E fazer o sinal na horizontal, vertical e diagonal. verificar se o espaço esta livre 
+	check_signal(Board, Player, Piece_x, Piece_y):-
+		get_piece(Board, Node1_x, Node1_y, n1), %obter as coordenadas dos nos
+		get_piece(Board, Node2_x, Node2_y, n2),
+		%Signal_direction é a posição do nó em relação à peça
+		(check_signal_vertical(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction);
+		check_signal_horizontal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction);
+		check_signal_vertical(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction);
+		check_signal_horizontal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction);
+		check_signal_diagonal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction); %calcular a diagonal
+		check_signal_diagonal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction)),
+		check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction).
+		check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction).
+	check_signal_horizontal(Xp, Yp, Xn, Yn, Signal_direction):-
+		%se calhar dá para nao utilizar a Distance e fazer diretamente
+		Distance is Yn - Yp,
+		Xn = Xp,
+		(Distance > 1, Signal_direction is right);
+		(Distance < 1, Signal_direction is left).
+	check_signal_vertical(Xp, Yp, Xn, Yn, Signal_direction):-
+		Distance is Xn - Xp,
+		Yn = Yp,
+		(Distance > 1, Signal_direction is up);
+		(Distance < 1, Signal_direction is left).
+	check_signal_diagonal(X1, Y1, X2, Y2, Signal_direction):-
+		Xdiference is X2 - X1,
+		Ydiference is Y2 - Y1,
+		(Xdiference > 1, Ydiference > 1, Signal_direction = diagonal_upright);
+		(Xdiference < 1, Ydiference > 1, Signal_direction = diagonal_upleft);
+		(Xdiference > 1, Ydiference < 1, Signal_direction = diagonal_downright);
+		(Xdiference < 1, Ydiference < 1, Signal_direction = diagonal_downleft),
+		Absxdiference is abs(Xdiference),
+		Absydiference is abs(Ydiference),
+		Absxdiference = Absydiference.
+	check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+		%como se verifica se é o p1 ou o p2?
+		(Signal_direction = up, check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, up));
+		(Signal_direction = down, check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, down));
+		(Signal_direction = left, check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, left));
+		(Signal_direction = right, check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, right));
+		(Signal_direction = diagonal_downleft, check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, diagonal_downleft));
+		(Signal_direction = diagonal_downright, check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, diagonal_downright));
+		(Signal_direction = diagonal_upleft, check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, diagonal_upleft));
+		(Signal_direction = diagonal_upright, check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, diagonal_upright)).
+	check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+		Piece_x =\= Node_x,
+		get_piece(Board, Node_x, Node_y, Enemy),
+		%if Player p1, Enemy = u2...
+		!, %nao tenho a certeza de como se usa isto
+		(Signal_direction = up, Node_x2 is Node_x - 1);
+		(Signal_direction = down, Node_x2 is Node_x + 1),
+		check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x2, Node_y, Signal_direction).
+	check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+		Piece_y =\= Node_y,
+		get_piece(Board, Node_x, Node_y, Enemy),
+		%if Player p1, Enemy = u2...
+		!, %nao tenho a certeza de como se usa isto
+		Node_y2 is Node_y - 1,
+		(Signal_direction = left, Node_y2 is Node_y - 1);
+		(Signal_direction = right, Node_y2 is Node_y + 1),
+		check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y2, Signal_direction).
+	check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y):-
+		Piece_x =\= Node_x,
+		Piece_y =\= Node_y,
+		get_piece(Board, Node_x, Node_y, Enemy),
+		%if Player p1, Enemy = u2...
+		!, %nao tenho a certeza de como se usa isto
+		(Signal_direction = diagonal_downleft, Node_y2 is Node_y + 1, Node_x2 is Node_x - 1);
+		(Signal_direction = diagonal_downright, Node_y2 is Node_y + 1, Node_x2 is Node_x + 1);
+		(Signal_direction = diagonal_upleft, Node_y2 is Node_y - 1, Node_x2 is Node_x - 1);
+		(Signal_direction = diagonal_upright, Node_y2 is Node_y - 1, Node_x2 is Node_x + 1),
+		check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x2, Node_y2, Signal_direction).
+		
+	%falta a parte de pintar um sp e colocar a peça na nova posiçao
+	rule(move_up, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+		Piece_orig_y2 is Piece_orig_y + 1,
+		get_piece(Board, Piece_orig_x, Piece_orig_y2, sp).
+				
+	rule(move_down, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+		Piece_orig_y2 is Piece_orig_y - 1,
+		get_piece(Board, Piece_orig_x, Piece_orig_y2, sp).
+		
+	rule(move_left, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+		Piece_orig_x2 is Piece_orig_x - 1,
+		get_piece(Board, Piece_orig_x2, Piece_orig_y, sp).
+		
+	rule(move_right, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+		Piece_orig_x2 is Piece_orig_x + 1,
+		get_piece(Board, Piece_orig_x2, Piece_orig_y, sp).
+		
+	rule(jump_up_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+		((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
+		Piece_orig_y2 is Piece_orig_y + 1,
+		get_piece(Board, Piece_orig_x, Piece_orig_y2, New_piece),
+		Piece_orig_y3 is Piece_orig_y + 2,
+		get_piece(Board, Piece_orig_x, Piece_orig_y3, sp).
+		
+	rule(jump_down_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+		((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
+		Piece_orig_y2 is Piece_orig_y - 1,
+		get_piece(Board, Piece_orig_x, Piece_orig_y2, New_piece),
+		Piece_orig_y3 is Piece_orig_y - 2,
+		get_piece(Board, Piece_orig_x, Piece_orig_y3, sp).
+		
+	rule(jump_left_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+		((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
+		Piece_orig_x2 is Piece_orig_x - 1,
+		get_piece(Board, Piece_orig_x2, Piece_orig_y, New_piece),
+		Piece_orig_x3 is Piece_orig_x - 2,
+		get_piece(Board, Piece_orig_x3, Piece_orig_y, sp).
+		
+	rule(jump_right_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+		((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
+		Piece_orig_x2 is Piece_orig_x + 1,
+		get_piece(Board, Piece_orig_x2, Piece_orig_y, New_piece),
+		Piece_orig_x3 is Piece_orig_x + 2,
+		get_piece(Board, Piece_orig_x3, Piece_orig_y, sp).
+	
+
+	
 	/* action / movement */
-%	nth1(Piece_orig_y, Board, Line),
-%	nth1(Piece_orig_x, Line, Piece),
 %	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
 %	set_piece(New_board2, Piece_new_x, Piece_new_y, Piece, New_board).
 
+get_piece(Board, X, Y, Piece):-
+	nth1(Y, Board, Line),
+	nth1(X, Line, Piece).
+	
+
 best_move(Player, Board, Best) :-
-	findall(Aux_board, rule(_, Player, _, _, _, _, Board, Aux_board), Possible_boards),
+	findall(Aux_board, rule(_, Player, _, _, Board, Aux_board), Possible_boards),
 	select_best(Possible_boards, Best).
 
 quality(Board, Player, Value).
@@ -256,33 +402,3 @@ set_cell(1, New_piece, [Piece | Rest_line], [New_piece | Rest_new_line]) :-
 	Next_X is 0,
 	set_cell(Next_X, New_piece, Rest_line, Rest_new_line).
 set_cell(_, _, [], []).
-
-
-/* 
-recomendaçoes do prof: 
-	colocar numeros nas linhas e colunas
-	fazer translate do board
-	
-read(X).
-write(X).
-get_char(X).	'X'
-get_code(X).	96
-put_char(X).
-put_code(X).
-
-print_board([]). para acabar de imprimir o tabuleiro
-print_board([Line|Rest]):-
-	nl,
-	print_line(Line),
-	print_board(Rest).
-
-print_line([]).
-print_line([Elem|Rest]):-
-	translate(Elem,TElem), %este traduz o Elem e guarda em TElem
-	write(TElem),
-	print_line(Rest).
-	
-translate(0, ' ').
-translate(1, 'X').
-translate(2, '0').
-*/
