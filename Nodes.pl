@@ -249,7 +249,7 @@ play(cc) :-
 	check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
 		Piece_x =\= Node_x,
 		get_piece(Board, Node_x, Node_y, Enemy),
-		%if Player p1, Enemy = u2...
+		((Player = p1, Enemy = u2); (Player = p2, Enemy = u1)),
 		!, %nao tenho a certeza de como se usa isto
 		(Signal_direction = up, Node_x2 is Node_x - 1);
 		(Signal_direction = down, Node_x2 is Node_x + 1),
@@ -258,7 +258,7 @@ play(cc) :-
 	check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
 		Piece_y =\= Node_y,
 		get_piece(Board, Node_x, Node_y, Enemy),
-		%if Player p1, Enemy = u2...
+		((Player = p1, Enemy = u2); (Player = p2, Enemy = u1)),
 		!, %nao tenho a certeza de como se usa isto
 		(Signal_direction = left, Node_y2 is Node_y - 1);
 		(Signal_direction = right, Node_y2 is Node_y + 1),
@@ -268,7 +268,7 @@ play(cc) :-
 		Piece_x =\= Node_x,
 		Piece_y =\= Node_y,
 		get_piece(Board, Node_x, Node_y, Enemy),
-		%if Player p1, Enemy = u2...
+		((Player = p1, Enemy = u2); (Player = p2, Enemy = u1)),
 		!, %nao tenho a certeza de como se usa isto
 		((Signal_direction = diagonal_downleft, Node_y2 is Node_y + 1, Node_x2 is Node_x - 1);
 		(Signal_direction = diagonal_downright, Node_y2 is Node_y + 1, Node_x2 is Node_x + 1);
@@ -282,7 +282,7 @@ play(cc) :-
 		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
 		Piece_orig_y2 is Piece_orig_y + 1,
 		get_piece(Board, Piece_orig_x, Piece_orig_y2, sp),
-		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board)
+		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board),
 		set_piece(Board, Piece_orig_x, Piece_orig_y2, Piece, New_board).
 				
 	rule(move_down, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
@@ -290,7 +290,7 @@ play(cc) :-
 		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
 		Piece_orig_y2 is Piece_orig_y - 1,
 		get_piece(Board, Piece_orig_x, Piece_orig_y2, sp),
-		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board)
+		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board),
 		set_piece(Board, Piece_orig_x, Piece_orig_y2, Piece, New_board).
 		
 	rule(move_left, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
@@ -298,7 +298,7 @@ play(cc) :-
 		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
 		Piece_orig_x2 is Piece_orig_x - 1,
 		get_piece(Board, Piece_orig_x2, Piece_orig_y, sp),
-		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board)
+		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board),
 		set_piece(Board, Piece_orig_x2, Piece_orig_y, Piece, New_board).
 		
 	rule(move_right, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
@@ -306,7 +306,7 @@ play(cc) :-
 		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
 		Piece_orig_x2 is Piece_orig_x + 1,
 		get_piece(Board, Piece_orig_x2, Piece_orig_y, sp),
-		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board)
+		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board),
 		set_piece(Board, Piece_orig_x2, Piece_orig_y, Piece, New_board).
 		
 	rule(jump_up_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
@@ -317,7 +317,7 @@ play(cc) :-
 		get_piece(Board, Piece_orig_x, Piece_orig_y2, New_piece),
 		Piece_orig_y3 is Piece_orig_y + 2,
 		get_piece(Board, Piece_orig_x, Piece_orig_y3, sp),
-		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board)
+		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board),
 		set_piece(Board, Piece_orig_x, Piece_orig_y3, Piece, New_board).
 		
 	rule(jump_down_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
@@ -328,7 +328,7 @@ play(cc) :-
 		get_piece(Board, Piece_orig_x, Piece_orig_y2, New_piece),
 		Piece_orig_y3 is Piece_orig_y - 2,
 		get_piece(Board, Piece_orig_x, Piece_orig_y3, sp),
-		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board)
+		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board),
 		set_piece(Board, Piece_orig_x, Piece_orig_y3, Piece, New_board).
 		
 	rule(jump_left_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
@@ -339,7 +339,7 @@ play(cc) :-
 		get_piece(Board, Piece_orig_x2, Piece_orig_y, New_piece),
 		Piece_orig_x3 is Piece_orig_x - 2,
 		get_piece(Board, Piece_orig_x3, Piece_orig_y, sp),
-		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board)
+		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board),
 		set_piece(Board, Piece_orig_x3, Piece_orig_y, Piece, New_board).
 		
 	rule(jump_right_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
@@ -350,7 +350,7 @@ play(cc) :-
 		get_piece(Board, Piece_orig_x2, Piece_orig_y, New_piece),
 		Piece_orig_x3 is Piece_orig_x + 2,
 		get_piece(Board, Piece_orig_x3, Piece_orig_y, sp),
-		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board)
+		set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board),
 		set_piece(Board, Piece_orig_x3, Piece_orig_y, Piece, New_board).
 	
 
