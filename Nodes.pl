@@ -71,7 +71,7 @@ display_board(Board) :-
 	board(Board), 
 	display_board_rows(Board, Board),
 	nl,
-	nl.
+	nl .
 	
 display_board_rows([Row | []], _Board) :-
 	display_board_middle_bottom_row(Row),
@@ -188,7 +188,7 @@ play(cc) :-
 	display_board(Best_board),
 	next_player(Player, Next),
 	assert(state(Next, Best_board)),
-	!.
+	! .
 
 % play(hh) :-
 
@@ -200,26 +200,30 @@ play(cc) :-
 	check_signal(Board, Player, Piece_x, Piece_y):-
 		get_piece(Board, Node1_x, Node1_y, n1), %obter as coordenadas dos nos
 		get_piece(Board, Node2_x, Node2_y, n2),
-		%Signal_direction é a posição do nó em relação à peça
-		(check_signal_vertical(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction);
-		check_signal_horizontal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction);
-		check_signal_vertical(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction);
-		check_signal_horizontal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction);
-		check_signal_diagonal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction); %calcular a diagonal
-		check_signal_diagonal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction)),
-		check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction).
-		check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction).
+		%nó1
+		((check_signal_vertical(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1);
+		check_signal_horizontal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1);
+		check_signal_diagonal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1)), %calcular a diagonal
+		check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1));
+		%nó2
+		((check_signal_vertical(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2);
+		check_signal_horizontal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2);
+		check_signal_diagonal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2)),
+		check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2)).
+		
 	check_signal_horizontal(Xp, Yp, Xn, Yn, Signal_direction):-
 		%se calhar dá para nao utilizar a Distance e fazer diretamente
 		Distance is Yn - Yp,
 		Xn = Xp,
-		(Distance > 1, Signal_direction is right);
-		(Distance < 1, Signal_direction is left).
+		((Distance > 1, Signal_direction is right);
+		(Distance < 1, Signal_direction is left)).
+		
 	check_signal_vertical(Xp, Yp, Xn, Yn, Signal_direction):-
 		Distance is Xn - Xp,
 		Yn = Yp,
-		(Distance > 1, Signal_direction is up);
-		(Distance < 1, Signal_direction is left).
+		((Distance > 1, Signal_direction is up);
+		(Distance < 1, Signal_direction is left)).
+		
 	check_signal_diagonal(X1, Y1, X2, Y2, Signal_direction):-
 		Xdiference is X2 - X1,
 		Ydiference is Y2 - Y1,
@@ -229,17 +233,19 @@ play(cc) :-
 		(Xdiference < 1, Ydiference < 1, Signal_direction = diagonal_downleft),
 		Absxdiference is abs(Xdiference),
 		Absydiference is abs(Ydiference),
-		Absxdiference = Absydiference.
+		Absxdiference = Absydiference .
+		
 	check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
 		%como se verifica se é o p1 ou o p2?
-		(Signal_direction = up, check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, up));
-		(Signal_direction = down, check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, down));
-		(Signal_direction = left, check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, left));
-		(Signal_direction = right, check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, right));
-		(Signal_direction = diagonal_downleft, check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, diagonal_downleft));
-		(Signal_direction = diagonal_downright, check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, diagonal_downright));
-		(Signal_direction = diagonal_upleft, check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, diagonal_upleft));
-		(Signal_direction = diagonal_upright, check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, diagonal_upright)).
+		((Signal_direction = up; Signal_direction = down), 
+		check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction));
+		
+		((Signal_direction = left; Signal_direction = right), 
+		check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction));
+		
+		((Signal_direction = diagonal_downleft; Signal_direction = diagonal_downright; Signal_direction = diagonal_upleft; Signal_direction = diagonal_upright),
+		check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction)).
+		
 	check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
 		Piece_x =\= Node_x,
 		get_piece(Board, Node_x, Node_y, Enemy),
@@ -248,6 +254,7 @@ play(cc) :-
 		(Signal_direction = up, Node_x2 is Node_x - 1);
 		(Signal_direction = down, Node_x2 is Node_x + 1),
 		check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x2, Node_y, Signal_direction).
+		
 	check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
 		Piece_y =\= Node_y,
 		get_piece(Board, Node_x, Node_y, Enemy),
@@ -257,16 +264,17 @@ play(cc) :-
 		(Signal_direction = left, Node_y2 is Node_y - 1);
 		(Signal_direction = right, Node_y2 is Node_y + 1),
 		check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y2, Signal_direction).
-	check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y):-
+		
+	check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
 		Piece_x =\= Node_x,
 		Piece_y =\= Node_y,
 		get_piece(Board, Node_x, Node_y, Enemy),
 		%if Player p1, Enemy = u2...
 		!, %nao tenho a certeza de como se usa isto
-		(Signal_direction = diagonal_downleft, Node_y2 is Node_y + 1, Node_x2 is Node_x - 1);
+		((Signal_direction = diagonal_downleft, Node_y2 is Node_y + 1, Node_x2 is Node_x - 1);
 		(Signal_direction = diagonal_downright, Node_y2 is Node_y + 1, Node_x2 is Node_x + 1);
 		(Signal_direction = diagonal_upleft, Node_y2 is Node_y - 1, Node_x2 is Node_x - 1);
-		(Signal_direction = diagonal_upright, Node_y2 is Node_y - 1, Node_x2 is Node_x + 1),
+		(Signal_direction = diagonal_upright, Node_y2 is Node_y - 1, Node_x2 is Node_x + 1)),
 		check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x2, Node_y2, Signal_direction).
 		
 	%falta a parte de pintar um sp e colocar a peça na nova posiçao
@@ -297,7 +305,7 @@ play(cc) :-
 	rule(jump_up_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
 		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
 		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
-		((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
+		((Piece = u2, Next_piece is u1); (Piece = u1, Next_piece is u2)),
 		Piece_orig_y2 is Piece_orig_y + 1,
 		get_piece(Board, Piece_orig_x, Piece_orig_y2, New_piece),
 		Piece_orig_y3 is Piece_orig_y + 2,
@@ -306,7 +314,7 @@ play(cc) :-
 	rule(jump_down_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
 		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
 		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
-		((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
+		((Piece = u2, Next_piece is u1); (Piece = u1, Next_piece is u2)),
 		Piece_orig_y2 is Piece_orig_y - 1,
 		get_piece(Board, Piece_orig_x, Piece_orig_y2, New_piece),
 		Piece_orig_y3 is Piece_orig_y - 2,
@@ -315,7 +323,7 @@ play(cc) :-
 	rule(jump_left_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
 		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
 		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
-		((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
+		((Piece = u2, Next_piece is u1); (Piece = u1, Next_piece is u2)),
 		Piece_orig_x2 is Piece_orig_x - 1,
 		get_piece(Board, Piece_orig_x2, Piece_orig_y, New_piece),
 		Piece_orig_x3 is Piece_orig_x - 2,
@@ -324,7 +332,7 @@ play(cc) :-
 	rule(jump_right_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
 		check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
 		get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
-		((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
+		((Piece = u2, Next_piece is u1); (Piece = u1, Next_piece is u2)),
 		Piece_orig_x2 is Piece_orig_x + 1,
 		get_piece(Board, Piece_orig_x2, Piece_orig_y, New_piece),
 		Piece_orig_x3 is Piece_orig_x + 2,
@@ -339,7 +347,6 @@ play(cc) :-
 get_piece(Board, X, Y, Piece):-
 	nth1(Y, Board, Line),
 	nth1(X, Line, Piece).
-	
 
 best_move(Player, Board, Best) :-
 	findall(Aux_board, rule(_, Player, _, _, Board, Aux_board), Possible_boards),
