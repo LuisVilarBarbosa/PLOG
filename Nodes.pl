@@ -260,7 +260,6 @@ play(cc) :-
 		get_piece(Board, Node_x, Node_y, Enemy),
 		%if Player p1, Enemy = u2...
 		!, %nao tenho a certeza de como se usa isto
-		Node_y2 is Node_y - 1,
 		(Signal_direction = left, Node_y2 is Node_y - 1);
 		(Signal_direction = right, Node_y2 is Node_y + 1),
 		check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y2, Signal_direction).
