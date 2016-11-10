@@ -349,8 +349,9 @@ best_move(Player, Board, Best) :-
 	nth1(Rand_y, Board, Line),
 	length(Line, Length_x),
 	random(1, Length_x, Rand_x),
-	bagof(Aux_board, rule(_, Player, Rand_x, Rand_y, Board, Aux_board), Possible_boards),
-	select_best(Player, Possible_boards, Best).
+	findall(Aux_board, rule(_, Player, Rand_x, Rand_y, Board, Aux_board), Possible_boards),
+	((Possible_boards = [], Best = Board);
+	select_best(Player, Possible_boards, Best)).
 
 select_best(Player, [Board | Other_boards], Best) :-
 	quality(Board, Player, Value).
