@@ -189,7 +189,7 @@ play(cc) :-
 
 % play(ch) :-
 
-check_signal(Board, Player, Piece_x, Piece_y):-
+check_signal(Board, Player, Piece_x, Piece_y) :-
 	/* Find the positions of the nodes */
 	get_piece(Board, Node1_x, Node1_y, n1),
 	get_piece(Board, Node2_x, Node2_y, n2),
@@ -204,19 +204,19 @@ check_signal(Board, Player, Piece_x, Piece_y):-
 	check_signal_diagonal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2)),
 	check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2))).
 		
-check_signal_horizontal(Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+check_signal_horizontal(Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	Distance is Node_y - Piece_y,
 	Node_x = Piece_x,
 	((Distance > 1, Signal_direction = right);
 	(Distance < 1, Signal_direction = left)).
 		
-check_signal_vertical(Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+check_signal_vertical(Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	Distance is Node_x - Piece_x,
 	Node_y = Piece_y,
 	((Distance > 1, Signal_direction = up);
 	(Distance < 1, Signal_direction = left)).
 		
-check_signal_diagonal(Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+check_signal_diagonal(Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	Xdiference is Node_x - Piece_x,
 	Ydiference is Node_y - Piece_y,
 	AbsXdiference is abs(Xdiference),
@@ -227,7 +227,7 @@ check_signal_diagonal(Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
 	(Xdiference > 1, Ydiference < 1, Signal_direction = diagonal_downright);
 	(Xdiference < 1, Ydiference < 1, Signal_direction = diagonal_downleft)).
 	
-check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	%como se verifica se é o p1 ou o p2?
 	(((Signal_direction = up; Signal_direction = down), 
 	check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction));	
@@ -236,7 +236,7 @@ check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node_x, Node_y
 	((Signal_direction = diagonal_downleft; Signal_direction = diagonal_downright; Signal_direction = diagonal_upleft; Signal_direction = diagonal_upright),
 	check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction))).
 		
-check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	Piece_x =\= Node_x,
 	get_piece(Board, Node_x, Node_y, Enemy),
 	((Player = p1, Enemy = u2); (Player = p2, Enemy = u1)),
@@ -245,7 +245,7 @@ check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_
 	(Signal_direction = down, Node_x2 is Node_x + 1)),
 	check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x2, Node_y, Signal_direction).
 		
-check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	Piece_y =\= Node_y,
 	get_piece(Board, Node_x, Node_y, Enemy),
 	((Player = p1, Enemy = u2); (Player = p2, Enemy = u1)),
@@ -254,7 +254,7 @@ check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Nod
 	(Signal_direction = right, Node_y2 is Node_y + 1)),
 	check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y2, Signal_direction).
 	
-check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction):-
+check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	Piece_x =\= Node_x,
 	Piece_y =\= Node_y,
 	get_piece(Board, Node_x, Node_y, Enemy),
@@ -270,80 +270,67 @@ rule(move_up, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
 	Piece_new_y is Piece_orig_y - 1,
 	rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Board, New_board).
 			
-rule(move_down, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+rule(move_down, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
 	Piece_new_y is Piece_orig_y + 1,
 	rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Board, New_board).
 	
-rule(move_left, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+rule(move_left, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
 	Piece_new_x is Piece_orig_x - 1,
 	rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Board, New_board).
 	
-rule(move_right, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
+rule(move_right, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
 	Piece_new_x is Piece_orig_x + 1,
 	rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Board, New_board).
 	
-rule(jump_up_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
-	/* Applicability pre-conditions verifications */
-	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
-	get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
-	((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
-	Piece_orig_y2 is Piece_orig_y - 1,
-	get_piece(Board, Piece_orig_x, Piece_orig_y2, New_piece),
-	Piece_orig_y3 is Piece_orig_y - 2,
-	get_piece(Board, Piece_orig_x, Piece_orig_y3, sp),
-	/* action / movement */
-	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
-	set_piece(New_board2, Piece_orig_x, Piece_orig_y3, Piece, New_board).
+rule(jump_up_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
+	Enemy_y is Piece_orig_y - 1,
+	Piece_new_y is Piece_orig_y - 2,
+	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Piece_orig_x, Piece_new_y, Board, New_board).
 	
-rule(jump_down_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
-	/* Applicability pre-conditions verifications */
-	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
-	get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
-	((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
-	Piece_orig_y2 is Piece_orig_y + 1,
-	get_piece(Board, Piece_orig_x, Piece_orig_y2, New_piece),
-	Piece_orig_y3 is Piece_orig_y + 2,
-	get_piece(Board, Piece_orig_x, Piece_orig_y3, sp),
-	/* action / movement */
-	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
-	set_piece(New_board2, Piece_orig_x, Piece_orig_y3, Piece, New_board).
+rule(jump_down_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
+	Enemy_y is Piece_orig_y + 1,
+	Piece_new_y is Piece_orig_y + 2,
+	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Piece_orig_x, Piece_new_y, Board, New_board).
 	
-rule(jump_left_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
-	/* Applicability pre-conditions verifications */
-	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
-	get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
-	((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
-	Piece_orig_x2 is Piece_orig_x - 1,
-	get_piece(Board, Piece_orig_x2, Piece_orig_y, New_piece),
-	Piece_orig_x3 is Piece_orig_x - 2,
-	get_piece(Board, Piece_orig_x3, Piece_orig_y, sp),
-	/* action / movement */
-	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
-	set_piece(New_board2, Piece_orig_x3, Piece_orig_y, Piece, New_board).
+rule(jump_left_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
+	Enemy_x is Piece_orig_x - 1,
+	Piece_new_x is Piece_orig_x - 2,
+	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Enemy_x, Piece_orig_y, Board, New_board).
 	
-rule(jump_right_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board):-
-	/* Applicability pre-conditions verifications */
-	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
-	get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
-	((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
-	Piece_orig_x2 is Piece_orig_x + 1,
-	get_piece(Board, Piece_orig_x2, Piece_orig_y, New_piece),
-	Piece_orig_x3 is Piece_orig_x + 2,
-	get_piece(Board, Piece_orig_x3, Piece_orig_y, sp),
-	/* action / movement */
-	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
-	set_piece(New_board2, Piece_orig_x3, Piece_orig_y, Piece, New_board).
+rule(jump_right_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
+	Enemy_x is Piece_orig_x + 1,
+	Piece_new_x is Piece_orig_x + 2,
+	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Enemy_x, Piece_orig_y, Board, New_board).
 
 rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Board, New_board) :-
 	/* Applicability pre-conditions verifications */
+	verify_inside_borders(Board, Piece_orig_x, Piece_orig_y),
+	verify_inside_borders(Board, Piece_new_x, Piece_new_y),
 	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
 	get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+	((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
+	get_piece(Board, Piece_new_x, Piece_new_y, sp),
+	/* action / movement */
+	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
+	set_piece(New_board2, Piece_new_x, Piece_new_y, Piece, New_board).
+	
+rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Enemy_x, Enemy_y, Board, New_board) :-
+	/* Applicability pre-conditions verifications */
+	verify_inside_borders(Board, Piece_orig_x, Piece_orig_y),
+	verify_inside_borders(Board, Enemy_x, Enemy_y),
+	verify_inside_borders(Board, Piece_new_x, Piece_new_y),
+	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+	get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+	((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
+	((Piece = u2, Next_piece = u1); (Piece = u1, Next_piece = u2)),
+	get_piece(Board, Enemy_x, Enemy_y, Next_piece),
 	get_piece(Board, Piece_new_x, Piece_new_y, sp),
 	/* action / movement */
 	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
 	set_piece(New_board2, Piece_new_x, Piece_new_y, Piece, New_board).
 
-get_piece(Board, X, Y, Piece):-
+
+get_piece(Board, X, Y, Piece) :-
 	nth1(Y, Board, Line),
 	nth1(X, Line, Piece).
 
