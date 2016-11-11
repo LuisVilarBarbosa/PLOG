@@ -354,7 +354,7 @@ get_piece(Board, X, Y, Piece) :-
 	nth1(Y, Board, Line),
 	nth1(X, Line, Piece).
 
-/* Check if the position X,Y is valid, is inside the Board's borders */
+/* Check if the position X,Y is valid, is inside the Board is borders */
 verify_inside_borders(Board, X, Y) :-
 	X >= 1,
 	Y >= 1,
@@ -366,56 +366,62 @@ verify_inside_borders(Board, X, Y) :-
 
 /* Calculates the best move possible */
 best_move(Player, Board, Best) :-
-	length(Board, Length_y),
-	random(1, Length_y, Rand_y),
-	nth1(Rand_y, Board, Line),
-	length(Line, Length_x),
-	random(1, Length_x, Rand_x),
-	((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
-	get_piece(Board, Rand_x, Rand_y, Piece),
-	findall(Aux_board, rule(_, Player, Rand_x, Rand_y, Board, Aux_board), Possible_boards),
+	findall(Aux_board,
+		(length(Board, Length_y),
+		random(1, Length_y, Rand_y),
+		nth1(Rand_y, Board, Line),
+		length(Line, Length_x),
+		random(1, Length_x, Rand_x),
+		((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
+		get_piece(Board, Rand_x, Rand_y, Piece),
+		rule(_, Player, Rand_x, Rand_y, Board, Aux_board)),
+	Possible_boards),write(Possible_boards),
 	((Possible_boards = [], Best = Board);
 	select_best(Player, Possible_boards, Best)).
 
-select_best(Player, [Board | Other_boards], Best) :-
-	quality(Board, Player, Value).
-%	select_best_aux(List_boards_values, Best_board2, Best_value2),
-%	select_best(Player, Other_boards, Best_board2).
+select_best(Player, Possible_boards, Best) :-
+	select_best_aux(Player, Possible_boards, Best, _Best_value).
 
-select_best_aux([[_Board, Value] | Other_boards_values], Best_board, Best_value) :-
-	select_best_aux(Other_boards_values, Best_board2, Best_value2),
-	Value =< Best_value2,
+select_best_aux(Player, [Board | Other_boards], Best_board, Best_value) :-
+	select_best_aux(Player, Other_boards, Best_board2, Best_value2),
+	quality(Board, Player, Value),
+	(Value =< Best_value2,
 	Best_value is Best_value2,
-	Best_board = Best_board2.
-select_best_aux([[Board, Value] | Other_boards_values], Best_board, Best_value) :-
-	select_best_aux(Other_boards_values, _Best_board2, Best_value2),
-	Value > Best_value2,
+	Best_board = Best_board2);
+	(Value > Best_value2,
 	Best_value is Value,
-	Best_board = Board.
-select_best_aux([[Board, Value]], Board, Value).
+	Best_board = Board).
+select_best_aux(_, [], [], 0).
 
 quality(Board, Player, Value) :-
-	quality_aux_1(Board, Player, Value).
-%	quality_aux_1(Board, Other_player, Value3),
-%	Value is Value2 / Value3.
+	length(Board, Length_y),
+	quality_aux_1(Board, Player, Length_y, Value).
 
-quality_aux_1([Line | Other_lines], Player, Value) :-
-	quality_aux_2(Line, Player, Value2),
-	quality_aux_1(Other_lines, Player, Value3),
+quality_aux_1(Board, Player, Y, Value) :-
+	Y >= 1,
+	nth1(Y, Board, Line),
+	length(Line, Length_x),
+	quality_aux_2(Board, Player, Length_x, Y, Value2),
+	Y2 is Y - 1,
+	quality_aux_1(Board, Player, Y2, Value3),
 	Value is Value2 + Value3,
 	!.
-quality_aux_1([], _, 0).
+quality_aux_1(_, _, 0, 0).
 
-quality_aux_2([Cell | Other_cells], Player, Value) :-
-	\+ check_signal(Cell),
-	quality_aux_2(Other_cells, Player, Value),
+quality_aux_2(Board, Player, X, Y, Value) :-
+	X >= 1,
+	\+ check_signal(Board, Player, X, Y),
+	X2 is X - 1,
+	quality_aux_2(Board, Player, X2, Y, Value),
 	!.
-quality_aux_2([Cell | Other_cells], Player, Value) :-
-	check_signal(Cell),
-	quality_aux_2(Other_cells, Player, Value2),
+quality_aux_2(Board, Player, X, Y, Value) :-
+	X >= 1,
+	check_signal(Board, Player, X, Y),
+	X2 is X - 1,
+	quality_aux_2(Board, Player, X2, Y, Value2),
 	Value is Value2 + 1,
 	!.
-quality_aux_2([], _, 0).
+quality_aux_2(_, _, 0, _, 0).
 
 verify_game_over :-
 	state(_, Board),
