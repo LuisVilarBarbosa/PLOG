@@ -403,12 +403,14 @@ select_best(Player, Possible_boards, Best) :-
 select_best_aux(Player, [Board | Other_boards], Best_board, Best_value) :-
 	select_best_aux(Player, Other_boards, Best_board2, Best_value2),
 	quality(Board, Player, Value),
-	(Value =< Best_value2,
-	Best_value is Best_value2,
-	Best_board = Best_board2);
-	(Value > Best_value2,
-	Best_value is Value,
-	Best_board = Board).
+	(
+		(Value >= Best_value2,
+		Best_value is Value,
+		Best_board = Board);
+		(Value < Best_value2,
+		Best_value is Best_value2,
+		Best_board = Best_board2)
+	).
 select_best_aux(_Player, [], [], 0).
 
 quality(Board, Player, Value) :-
