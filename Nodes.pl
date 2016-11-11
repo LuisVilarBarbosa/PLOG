@@ -1,4 +1,5 @@
 :-use_module(library(lists)).
+:- use_module(library(random)).
 
 :- dynamic player/1.
 :- dynamic state/2.
@@ -61,7 +62,6 @@ state(_Player, _Board).
 
 /* Display */
 display_board(Board) :-
-	board(Board), 
 	display_board_rows(Board, Board),
 	nl,
 	nl.
@@ -406,8 +406,8 @@ verify_enemy_player(Board, Player, Enemy_x, Enemy_y) :-
 
 /* Calculates the best move possible */
 best_move(Player, Mode, Board, Best) :-
-	findall(Aux_board,
-			(length(Board, Length_y),
+	findall(Aux_board, (
+			length(Board, Length_y),
 			random(1, Length_y, Rand_y),
 			nth1(Rand_y, Board, Line),
 			length(Line, Length_x),
