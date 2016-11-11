@@ -302,29 +302,17 @@ rule(move_right, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
 	Piece_new_x is Piece_orig_x + 1,
 	rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Board, New_board).
 
-/* Auxiliar function to the move functions */
-rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Board, New_board) :-
-	/* Applicability pre-conditions verifications */
-	verify_inside_borders(Board, Piece_orig_x, Piece_orig_y),
-	verify_inside_borders(Board, Piece_new_x, Piece_new_y),
-	verify_piece_player(Board, Player, Piece_orig_x, Piece_orig_y),
-	get_piece(Board, Piece_new_x, Piece_new_y, sp),
-	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
-	/* action / movement */
-	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
-	set_piece(New_board2, Piece_new_x, Piece_new_y, Piece, New_board).
-
 /* Jump up */
 rule(jump_up_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
 	Enemy_y is Piece_orig_y - 1,
 	Piece_new_y is Piece_orig_y - 2,
-	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Piece_orig_x, Piece_new_y, Board, New_board).
+	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Piece_orig_x, Enemy_y, Board, New_board).
 
 /* Jump down */
 rule(jump_down_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
 	Enemy_y is Piece_orig_y + 1,
 	Piece_new_y is Piece_orig_y + 2,
-	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Piece_orig_x, Piece_new_y, Board, New_board).
+	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Piece_orig_x, Enemy_y, Board, New_board).
 
 /* Jump left */
 rule(jump_left_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
@@ -338,13 +326,25 @@ rule(jump_right_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board
 	Piece_new_x is Piece_orig_x + 2,
 	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Enemy_x, Piece_orig_y, Board, New_board).
 
+/* Auxiliar function to the move functions */
+rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Board, New_board) :-
+	/* Applicability pre-conditions verifications */
+	verify_inside_borders(Board, Piece_orig_x, Piece_orig_y),
+	verify_inside_borders(Board, Piece_new_x, Piece_new_y),
+	verify_piece_player(Board, Player, Piece, Piece_orig_x, Piece_orig_y),
+	get_piece(Board, Piece_new_x, Piece_new_y, sp),
+	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
+	/* action / movement */
+	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
+	set_piece(New_board2, Piece_new_x, Piece_new_y, Piece, New_board).
+
 /* Auxiliar function to the jump functions */
 rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Enemy_x, Enemy_y, Board, New_board) :-
 	/* Applicability pre-conditions verifications */
 	verify_inside_borders(Board, Piece_orig_x, Piece_orig_y),
 	verify_inside_borders(Board, Enemy_x, Enemy_y),
 	verify_inside_borders(Board, Piece_new_x, Piece_new_y),
-	verify_piece_player(Board, Player, Piece_orig_x, Piece_orig_y),
+	verify_piece_player(Board, Player, Piece, Piece_orig_x, Piece_orig_y),
 	verify_enemy_player(Board, Player, Enemy_x, Enemy_y),
 	get_piece(Board, Piece_new_x, Piece_new_y, sp),
 	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
@@ -368,7 +368,7 @@ verify_inside_borders(Board, X, Y) :-
 	X =< Length_x.
 
 /* Check if the Piece belongs to the Player */
-verify_piece_player(Board, Player, Piece_x, Piece_y) :-
+verify_piece_player(Board, Player, Piece, Piece_x, Piece_y) :-
 	((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
 	get_piece(Board, Piece_x, Piece_y, Piece).
 
