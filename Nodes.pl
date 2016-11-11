@@ -202,6 +202,8 @@ play(ch, _Mode) :-
 /* Check if the Piece is receiving the signal from a node */
 check_signal(Board, Player, Piece_x, Piece_y) :-
 	/* Find the positions of the nodes */
+	((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
+	get_piece(Board, Piece_x, Piece_y, Piece),
 	get_piece(Board, Node1_x, Node1_y, n1),
 	get_piece(Board, Node2_x, Node2_y, n2),
 	/* Node 1 */
@@ -362,7 +364,7 @@ get_piece(Board, X, Y, Piece) :-
 	nth1(Y, Board, Line),
 	nth1(X, Line, Piece).
 
-/* Check if the position X,Y is valid, is inside the Board is borders */
+/* Check if the position X,Y is valid, is inside the borders of the Board */
 verify_inside_borders(Board, X, Y) :-
 	X >= 1,
 	Y >= 1,
