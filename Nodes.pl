@@ -1,5 +1,4 @@
 :-use_module(library(lists)).
-:-use_module(library(random)).
 
 :- dynamic player/1.
 :- dynamic state/2.
@@ -408,15 +407,15 @@ verify_enemy_player(Board, Player, Enemy_x, Enemy_y) :-
 /* Calculates the best move possible */
 best_move(Player, Mode, Board, Best) :-
 	findall(Aux_board,
-		(length(Board, Length_y),
-		random(1, Length_y, Rand_y),
-		nth1(Rand_y, Board, Line),
-		length(Line, Length_x),
-		random(1, Length_x, Rand_x),
-		((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
-		get_piece(Board, Rand_x, Rand_y, Piece),
-		rule(_Move, Player, Rand_x, Rand_y, Board, Aux_board)),
-	Possible_boards),write(Possible_boards),
+			(length(Board, Length_y),
+			random(1, Length_y, Rand_y),
+			nth1(Rand_y, Board, Line),
+			length(Line, Length_x),
+			random(1, Length_x, Rand_x),
+			((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
+			get_piece(Board, Rand_x, Rand_y, Piece),
+			rule(_Move, Player, Rand_x, Rand_y, Board, Aux_board)
+		), Possible_boards),write(Possible_boards),
 	(
 		(Possible_boards = [], Best = Board);
 		(
