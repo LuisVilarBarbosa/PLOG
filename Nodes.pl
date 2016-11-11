@@ -253,8 +253,7 @@ check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node_x, Node_y
 /* Check if the signal from a Node is being blocked by an enemy unit on the same row */
 check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	Piece_y =\= Node_y,
-	((Player = p1, Enemy = u2); (Player = p2, Enemy = u1)),
-	get_piece(Board, Node_x, Node_y, Enemy),
+	verify_enemy_player(Board, Player, Node_x, Node_y),
 	!, %nao tenho a certeza de como se usa isto
 	((Signal_direction = left, Node_y2 is Node_y - 1);
 	(Signal_direction = right, Node_y2 is Node_y + 1)),
@@ -263,8 +262,7 @@ check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Nod
 /* Check if the signal from a Node is being blocked by an enemy unit on the same column */
 check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	Piece_x =\= Node_x,
-	((Player = p1, Enemy = u2); (Player = p2, Enemy = u1)),
-	get_piece(Board, Node_x, Node_y, Enemy),
+	verify_enemy_player(Board, Player, Node_x, Node_y),
 	!, %nao tenho a certeza de como se usa isto
 	((Signal_direction = up, Node_x2 is Node_x - 1);
 	(Signal_direction = down, Node_x2 is Node_x + 1)),
@@ -274,8 +272,7 @@ check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_
 check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
 	Piece_x =\= Node_x,
 	Piece_y =\= Node_y,
-	((Player = p1, Enemy = u2); (Player = p2, Enemy = u1)),
-	get_piece(Board, Node_x, Node_y, Enemy),
+	verify_enemy_player(Board, Player, Node_x, Node_y),
 	!, %nao tenho a certeza de como se usa isto
 	((Signal_direction = diagonal_downleft, Node_y2 is Node_y + 1, Node_x2 is Node_x - 1);
 	(Signal_direction = diagonal_downright, Node_y2 is Node_y + 1, Node_x2 is Node_x + 1);
@@ -287,25 +284,21 @@ check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_
 
 /* Move up */
 rule(move_up, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
-	verify_piece_player(Player, Piece_orig_x, Piece_orig_y),
 	Piece_new_y is Piece_orig_y - 1,
 	rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Board, New_board).
 
 /* Move down */	
 rule(move_down, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
-	verify_piece_player(Player, Piece_orig_x, Piece_orig_y),
 	Piece_new_y is Piece_orig_y + 1,
 	rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Board, New_board).
 
 /* Move left */
 rule(move_left, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
-	verify_piece_player(Player, Piece_orig_x, Piece_orig_y),
 	Piece_new_x is Piece_orig_x - 1,
 	rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Board, New_board).
 
 /* Move right */
 rule(move_right, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
-	verify_piece_player(Player, Piece_orig_x, Piece_orig_y),
 	Piece_new_x is Piece_orig_x + 1,
 	rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Board, New_board).
 
@@ -314,38 +307,33 @@ rule_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Board, Ne
 	/* Applicability pre-conditions verifications */
 	verify_inside_borders(Board, Piece_orig_x, Piece_orig_y),
 	verify_inside_borders(Board, Piece_new_x, Piece_new_y),
-	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
-	((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
-	get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
+	verify_piece_player(Board, Player, Piece_orig_x, Piece_orig_y),
 	get_piece(Board, Piece_new_x, Piece_new_y, sp),
+	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
 	/* action / movement */
 	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
 	set_piece(New_board2, Piece_new_x, Piece_new_y, Piece, New_board).
 
 /* Jump up */
 rule(jump_up_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
-	verify_piece_player(Player, Piece_orig_x, Piece_orig_y),
 	Enemy_y is Piece_orig_y - 1,
 	Piece_new_y is Piece_orig_y - 2,
 	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Piece_orig_x, Piece_new_y, Board, New_board).
 
 /* Jump down */
 rule(jump_down_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
-	verify_piece_player(Player, Piece_orig_x, Piece_orig_y),
 	Enemy_y is Piece_orig_y + 1,
 	Piece_new_y is Piece_orig_y + 2,
 	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_orig_x, Piece_new_y, Piece_orig_x, Piece_new_y, Board, New_board).
 
 /* Jump left */
 rule(jump_left_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
-	verify_piece_player(Player, Piece_orig_x, Piece_orig_y),
 	Enemy_x is Piece_orig_x - 1,
 	Piece_new_x is Piece_orig_x - 2,
 	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Enemy_x, Piece_orig_y, Board, New_board).
 
 /* Jump right */
 rule(jump_right_enemy_unit, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
-	verify_piece_player(Player, Piece_orig_x, Piece_orig_y),
 	Enemy_x is Piece_orig_x + 1,
 	Piece_new_x is Piece_orig_x + 2,
 	rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_orig_y, Enemy_x, Piece_orig_y, Board, New_board).
@@ -356,11 +344,10 @@ rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Enem
 	verify_inside_borders(Board, Piece_orig_x, Piece_orig_y),
 	verify_inside_borders(Board, Enemy_x, Enemy_y),
 	verify_inside_borders(Board, Piece_new_x, Piece_new_y),
-	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
-	((Player = p1, Piece = u1, Next_piece = u2); (Player = p2, Piece = u2, Next_piece = u1)),
-	get_piece(Board, Piece_orig_x, Piece_orig_y, Piece),
-	get_piece(Board, Enemy_x, Enemy_y, Next_piece),
+	verify_piece_player(Board, Player, Piece_orig_x, Piece_orig_y),
+	verify_enemy_player(Board, Player, Enemy_x, Enemy_y),
 	get_piece(Board, Piece_new_x, Piece_new_y, sp),
+	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
 	/* action / movement */
 	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
 	set_piece(New_board2, Piece_new_x, Piece_new_y, Piece, New_board).
@@ -381,9 +368,14 @@ verify_inside_borders(Board, X, Y) :-
 	X =< Length_x.
 
 /* Check if the Piece belongs to the Player */
-verify_piece_player(Player, Piece_x, Piece_y) :-
+verify_piece_player(Board, Player, Piece_x, Piece_y) :-
 	((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
-	get_piece(Board, Piece_orig_x, Piece_orig_y, Piece).	
+	get_piece(Board, Piece_x, Piece_y, Piece).
+
+/* Check if the Piece is an Enemy of the Player */	
+verify_enemy_player(Board, Player, Enemy_x, Enemy_y) :-
+	((Player = p1, Piece = u2); (Player = p2, Piece = u1)),
+	get_piece(Board, Enemy_x, Enemy_y, Piece).	
 
 /* Calculates the best move possible */
 best_move(Player, Mode, Board, Best) :-
