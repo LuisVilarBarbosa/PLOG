@@ -201,84 +201,112 @@ play(ch, _Mode) :-
 
 /* Check if the Piece is receiving the signal from a node */
 check_signal(Board, Player, Piece_x, Piece_y) :-
-	/* Find the positions of the nodes */
-	get_piece(Board, Node1_x, Node1_y, n1),
-	get_piece(Board, Node2_x, Node2_y, n2),
 	/* Node 1 */
-	(((check_signal_vertical(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1);
-	check_signal_horizontal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1);
-	check_signal_diagonal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1)),
-	\+ check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1));
+	(
+		(
+			get_piece(Board, Node1_x, Node1_y, n1),		/* Find the position of the node */
+			(
+				check_signal_vertical(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1);
+				check_signal_horizontal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1);
+				check_signal_diagonal(Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1)
+			),
+			\+ check_enemies_interrupting_signal(Board, Player, Piece_x, Piece_y, Node1_x, Node1_y, Signal_direction1)
+		);
 	/* Node 2 */
-	((check_signal_vertical(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2);
-	check_signal_horizontal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2);
-	check_signal_diagonal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2)),
-	\+ check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2))).
+		(
+			get_piece(Board, Node2_x, Node2_y, n2),		/* Find the position of the node */
+			(
+				check_signal_vertical(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2);
+				check_signal_horizontal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2);
+				check_signal_diagonal(Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2)
+			),
+			\+ check_enemies_interrupting_signal(Board, Player, Piece_x, Piece_y, Node2_x, Node2_y, Signal_direction2)
+		)
+	).
 
 /* Check if the Piece is receiving the signal from a Node that is on the same row */
 check_signal_horizontal(Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
-	Node_x = Piece_x,
-	Distance is Node_y - Piece_y,
-	((Distance > 0, Signal_direction = right);
-	(Distance < 0, Signal_direction = left)).
+	Node_y = Piece_y,
+	Distance is Node_x - Piece_x,
+	(
+		(Distance > 0, Signal_direction = right);
+		(Distance < 0, Signal_direction = left)
+	).
 
 /* Check if the Piece is receiving the signal from a Node that is on the same column */
 check_signal_vertical(Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
-	Node_y = Piece_y,
-	Distance is Node_x - Piece_x,
-	((Distance > 0, Signal_direction = up);
-	(Distance < 0, Signal_direction = left)).
+	Node_x = Piece_x,
+	Distance is Node_y - Piece_y,
+	(
+		(Distance > 0, Signal_direction = down);
+		(Distance < 0, Signal_direction = up)
+	).
 
 /* Check if the Piece is receiving the signal from a Node through a conduit */
 check_signal_diagonal(Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
-	Xdiference is Node_x - Piece_x,
-	Ydiference is Node_y - Piece_y,
-	AbsXdiference is abs(Xdiference),
-	AbsYdiference is abs(Ydiference),
-	AbsXdiference = AbsYdiference,
-	((Xdiference > 0, Ydiference > 0, Signal_direction = diagonal_upright);
-	(Xdiference < 0, Ydiference > 0, Signal_direction = diagonal_upleft);
-	(Xdiference > 0, Ydiference < 0, Signal_direction = diagonal_downright);
-	(Xdiference < 0, Ydiference < 0, Signal_direction = diagonal_downleft)).
+	X_diference is Node_x - Piece_x,
+	Y_diference is Node_y - Piece_y,
+	Abs_X_diference is abs(X_diference),
+	Abs_Y_diference is abs(Y_diference),
+	Abs_X_diference = Abs_Y_diference,
+	(
+		(X_diference > 0, Y_diference > 0, Signal_direction = diagonal_down_right);
+		(X_diference < 0, Y_diference > 0, Signal_direction = diagonal_down_left);
+		(X_diference > 0, Y_diference < 0, Signal_direction = diagonal_up_right);
+		(X_diference < 0, Y_diference < 0, Signal_direction = diagonal_up_left)
+	).
 
 /* Check if the signal from a Node is being blocked by an enemy unit */
-check_enemies_interruptingsignal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
-	((Signal_direction = up; Signal_direction = down), 
-	check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction));	
-	((Signal_direction = left; Signal_direction = right), 
-	check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction));
-	((Signal_direction = diagonal_downleft; Signal_direction = diagonal_downright; Signal_direction = diagonal_upleft; Signal_direction = diagonal_upright),
-	check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction)).
+check_enemies_interrupting_signal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
+	(
+		(
+			(Signal_direction = up; Signal_direction = down), 
+			check_enemies_interrupting_signal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction)
+		);	
+		(
+			(Signal_direction = left; Signal_direction = right),
+			check_enemies_interrupting_signal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction)
+		);
+		(
+			(Signal_direction = diagonal_down_left; Signal_direction = diagonal_down_right; Signal_direction = diagonal_up_left; Signal_direction = diagonal_up_right),
+			check_enemies_interrupting_signal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction)
+		)
+	).
 
 /* Check if the signal from a Node is being blocked by an enemy unit on the same row */
-check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
-	Piece_y =\= Node_y,
-	verify_enemy_player(Board, Player, Node_x, Node_y),
-	!, %nao tenho a certeza de como se usa isto
-	((Signal_direction = left, Node_y2 is Node_y - 1);
-	(Signal_direction = right, Node_y2 is Node_y + 1)),
-	check_enemies_interruptingsignal_horizontal(Board, Player, Piece_x, Piece_y, Node_x, Node_y2, Signal_direction).
+check_enemies_interrupting_signal_horizontal(Board, Player, Piece_x, Piece_y, Other_piece_x, Other_piece_y, Signal_direction) :-
+	Piece_x =\= Other_piece_x,
+	verify_enemy_player(Board, Player, Other_piece_x, Other_piece_y),
+	(
+		(
+			(Signal_direction = left, Other_piece_x2 is Other_piece_x - 1);
+			(Signal_direction = right, Other_piece_x2 is Other_piece_x + 1)
+		),
+		check_enemies_interrupting_signal_horizontal(Board, Player, Piece_x, Piece_y, Other_piece_x2, Other_piece_y, Signal_direction)
+	).
 
 /* Check if the signal from a Node is being blocked by an enemy unit on the same column */
-check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
-	Piece_x =\= Node_x,
-	verify_enemy_player(Board, Player, Node_x, Node_y),
-	!, %nao tenho a certeza de como se usa isto
-	((Signal_direction = up, Node_x2 is Node_x - 1);
-	(Signal_direction = down, Node_x2 is Node_x + 1)),
-	check_enemies_interruptingsignal_vertical(Board, Player, Piece_x, Piece_y, Node_x2, Node_y, Signal_direction).
+check_enemies_interrupting_signal_vertical(Board, Player, Piece_x, Piece_y, Other_piece_x, Other_piece_y, Signal_direction) :-
+	Piece_y =\= Other_piece_y,
+	verify_enemy_player(Board, Player, Other_piece_x, Other_piece_y),
+	(
+		(Signal_direction = up, Other_piece_y2 is Other_piece_y - 1);
+		(Signal_direction = down, Other_piece_y2 is Other_piece_y + 1)
+	),
+	check_enemies_interrupting_signal_vertical(Board, Player, Piece_x, Piece_y, Other_piece_x, Other_piece_y2, Signal_direction).
 		
 /* Check if the signal from a Node is being blocked by an enemy unit through a conduit */	
-check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x, Node_y, Signal_direction) :-
-	Piece_x =\= Node_x,
-	Piece_y =\= Node_y,
-	verify_enemy_player(Board, Player, Node_x, Node_y),
-	!, %nao tenho a certeza de como se usa isto
-	((Signal_direction = diagonal_downleft, Node_y2 is Node_y + 1, Node_x2 is Node_x - 1);
-	(Signal_direction = diagonal_downright, Node_y2 is Node_y + 1, Node_x2 is Node_x + 1);
-	(Signal_direction = diagonal_upleft, Node_y2 is Node_y - 1, Node_x2 is Node_x - 1);
-	(Signal_direction = diagonal_upright, Node_y2 is Node_y - 1, Node_x2 is Node_x + 1)),
-	check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x2, Node_y2, Signal_direction).
+check_enemies_interrupting_signal_diagonal(Board, Player, Piece_x, Piece_y, Other_piece_x, Other_piece_y, Signal_direction) :-
+	Piece_x =\= Other_piece_x,
+	Piece_y =\= Other_piece_y,
+	verify_enemy_player(Board, Player, Other_piece_x, Other_piece_y),
+	(
+		(Signal_direction = diagonal_down_left, Other_piece_y2 is Other_piece_y + 1, Other_piece_x2 is Other_piece_x - 1);
+		(Signal_direction = diagonal_down_right, Other_piece_y2 is Other_piece_x + 1, Other_piece_x2 is Other_piece_x + 1);
+		(Signal_direction = diagonal_up_left, Other_piece_y2 is Other_piece_y - 1, Other_piece_x2 is Other_piece_x - 1);
+		(Signal_direction = diagonal_up_right, Other_piece_y2 is Other_piece_y - 1, Other_piece_x2 is Other_piece_x + 1)
+	),
+	check_enemies_interrupting_signal_diagonal(Board, Player, Piece_x, Piece_y, Other_piece_x2, Other_piece_y2, Signal_direction).
 
 /* Movement functions */
 
