@@ -158,7 +158,7 @@ display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 	display_board_middle_bottom_row(Other_pieces).
 
 /* Game logic */
-game(Type) :-
+game(Type, Mode) :-
 %	write('Player 1 (younger): '),
 %	read(Player1),
 %	write('Player 2 (older): '),
@@ -168,33 +168,33 @@ game(Type) :-
 %	retract(player(p2)),
 %	assert(player(Player2)),
 	board(Board),
-	retract(state(_, _)),
+	retract(state(_Player, _Board)),
 	assert(state(p1, Board)),	/* the youngest player begins the game */
 	repeat,
-		state(Player, _),
+		state(Player, _Board),
 		format("Player: ~s~N", Player),
-		play(Type),
+		play(Type, Mode),
 		verify_game_over,
-	state(Player, _),
+	state(Player, _Board),
 	next_player(Player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
 	show_results(Winner).
 
-play(cc) :-
+play(cc, Mode) :-
 	retract(state(Player, Actual_board)),
-	best_move(Player, Actual_board, Best_board),
+	best_move(Player, Mode, Actual_board, Best_board),
 	display_board(Best_board),
 	next_player(Player, Next),
 	assert(state(Next, Best_board)),
 	!.
 
-% play(hh) :-
+% play(hh, _Mode) :-
 
-play(ch) :-
-	state(p1, _),
-	play(cc).
+play(ch, Mode) :-
+	state(p1, _Board),
+	play(cc, Mode).
 
-play(ch) :-
-	state(p2, _),
+play(ch, _Mode) :-
+	state(p2, _Board),
 	play(hh).
 
 /* Signal functions */
@@ -373,7 +373,7 @@ verify_inside_borders(Board, X, Y) :-
 	X =< Length_x.
 
 /* Calculates the best move possible */
-best_move(Player, Board, Best) :-
+best_move(Player, Mode, Board, Best) :-
 	findall(Aux_board,
 		(length(Board, Length_y),
 		random(1, Length_y, Rand_y),
@@ -382,10 +382,15 @@ best_move(Player, Board, Best) :-
 		random(1, Length_x, Rand_x),
 		((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
 		get_piece(Board, Rand_x, Rand_y, Piece),
-		rule(_, Player, Rand_x, Rand_y, Board, Aux_board)),
+		rule(_Move, Player, Rand_x, Rand_y, Board, Aux_board)),
 	Possible_boards),write(Possible_boards),
-	((Possible_boards = [], Best = Board);
-	select_best(Player, Possible_boards, Best)).
+	(
+		(Possible_boards = [], Best = Board);
+		(
+			(Mode = easy, nth1(1, Possible_boards, Best));
+			(Mode = hard, select_best(Player, Possible_boards, Best))
+		)
+	).
 
 select_best(Player, Possible_boards, Best) :-
 	select_best_aux(Player, Possible_boards, Best, _Best_value).
@@ -399,7 +404,7 @@ select_best_aux(Player, [Board | Other_boards], Best_board, Best_value) :-
 	(Value > Best_value2,
 	Best_value is Value,
 	Best_board = Board).
-select_best_aux(_, [], [], 0).
+select_best_aux(_Player, [], [], 0).
 
 quality(Board, Player, Value) :-
 	length(Board, Length_y),
@@ -414,7 +419,7 @@ quality_aux_1(Board, Player, Y, Value) :-
 	quality_aux_1(Board, Player, Y2, Value3),
 	Value is Value2 + Value3,
 	!.
-quality_aux_1(_, _, 0, 0).
+quality_aux_1(_Board, _Player, 0, 0).
 
 quality_aux_2(Board, Player, X, Y, Value) :-
 	X >= 1,
@@ -429,10 +434,10 @@ quality_aux_2(Board, Player, X, Y, Value) :-
 	quality_aux_2(Board, Player, X2, Y, Value2),
 	Value is Value2 + 1,
 	!.
-quality_aux_2(_, _, 0, _, 0).
+quality_aux_2(_Board, _Player, 0, _Y, 0).
 
 verify_game_over :-
-	state(_, Board),
+	state(_Player, Board),
 	find_node(Board, X, Y, Node),
 	verify_blocked(Board, Node, X, Y).
 
@@ -472,7 +477,7 @@ set_piece([Line | Other_lines], X, 1, New_piece, [New_line | Other_new_lines]) :
 	set_cell(X, New_piece, Line, New_line),
 	Next_Y is 0,
 	set_piece(Other_lines, X, Next_Y, New_piece, Other_new_lines).
-set_piece([], _, _, _, []).
+set_piece([], _X, _Y, _New_piece, []).
 
 /* If 'X' is invalid, the same list will be returned */
 set_cell(X, New_piece, [Piece | Rest_line], [Piece | Rest_new_line]) :-
@@ -482,4 +487,4 @@ set_cell(X, New_piece, [Piece | Rest_line], [Piece | Rest_new_line]) :-
 set_cell(1, New_piece, [_Piece | Rest_line], [New_piece | Rest_new_line]) :-
 	Next_X is 0,
 	set_cell(Next_X, New_piece, Rest_line, Rest_new_line).
-set_cell(_, _, [], []).
+set_cell(_X, _New_piece, [], []).
