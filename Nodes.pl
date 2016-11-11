@@ -171,6 +171,8 @@ game(Type) :-
 	retract(state(_, _)),
 	assert(state(p1, Board)),	/* the youngest player begins the game */
 	repeat,
+		state(Player, _),
+		format("Player: ~s~N", Player),
 		play(Type),
 		verify_game_over,
 	state(Player, _),
@@ -183,15 +185,21 @@ play(cc) :-
 	display_board(Best_board),
 	next_player(Player, Next),
 	assert(state(Next, Best_board)),
-	! .
+	!.
 
 % play(hh) :-
 
-% play(ch) :-
+play(ch) :-
+	state(p1, _),
+	play(cc).
 
-/* Signal Functions */
+play(ch) :-
+	state(p2, _),
+	play(hh).
 
-/* Check if the Piece is receiving the signal from a Node */
+/* Signal functions */
+
+/* Check if the Piece is receiving the signal from a node */
 check_signal(Board, Player, Piece_x, Piece_y) :-
 	/* Find the positions of the nodes */
 	get_piece(Board, Node1_x, Node1_y, n1),
@@ -275,7 +283,7 @@ check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_
 	(Signal_direction = diagonal_upright, Node_y2 is Node_y - 1, Node_x2 is Node_x + 1)),
 	check_enemies_interruptingsignal_diagonal(Board, Player, Piece_x, Piece_y, Node_x2, Node_y2, Signal_direction).
 
-/* Movement Functions */
+/* Movement functions */
 
 /* Move up */
 rule(move_up, Player, Piece_orig_x, Piece_orig_y, Board, New_board) :-
@@ -445,7 +453,7 @@ verify_blocked(Board, Node, X, Y) :-
 	verify_blocked_up(Board, Enemy_unit, X, Y),
 	verify_blocked_down(Board, Enemy_unit, X, Y).
 
-/* if 'X' or 'Y' out of borders 'yes' will be returned */
+/* If 'X2' or 'Y2' out of borders 'yes' will be returned, as desired */
 verify_blocked_left(Board, Enemy_unit, X, Y) :- X2 is X - 1, (X2 < 1; (nth1(Y, Board, Line), nth1(X2, Line, Enemy_unit))).
 verify_blocked_right(Board, Enemy_unit, X, Y) :- X2 is X + 1, (nth1(Y, Board, Line), length(Line, Length_x), (X2 > Length_x; nth1(X2, Line, Enemy_unit))).
 verify_blocked_up(Board, Enemy_unit, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Line), nth1(X, Line, Enemy_unit))).
@@ -455,7 +463,7 @@ next_player(Player, Next) :- player(Player), player(Next), Player \= Next.
 
 show_results(Winner) :- format('~NWinner: ~s~N', Winner).
 
-/* if 'Y' is invalid, the same list will be returned */
+/* If 'Y' is invalid, the same list will be returned */
 set_piece([Line | Other_lines], X, Y, New_piece, [Line | Other_new_lines]) :-
 	Y =\= 1,
 	Next_Y is Y - 1,
@@ -466,7 +474,7 @@ set_piece([Line | Other_lines], X, 1, New_piece, [New_line | Other_new_lines]) :
 	set_piece(Other_lines, X, Next_Y, New_piece, Other_new_lines).
 set_piece([], _, _, _, []).
 
-/* if 'X' is invalid, the same list will be returned */
+/* If 'X' is invalid, the same list will be returned */
 set_cell(X, New_piece, [Piece | Rest_line], [Piece | Rest_new_line]) :-
 	X =\= 1,
 	Next_X is X - 1,
