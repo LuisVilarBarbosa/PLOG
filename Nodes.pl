@@ -499,7 +499,8 @@ burst_move(Player, Mode, Board, Best) :-
 			Best = New_board
 		);
 		burst_move(Player, Mode, New_board, Best)
-	).
+	),
+	!.
 
 try_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
 	findall(Aux_board, (rule(_Move, Player, Piece_x, Piece_y, Board, Aux_board)), Possible_boards),
