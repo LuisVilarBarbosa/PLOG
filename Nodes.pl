@@ -501,22 +501,20 @@ select_best_aux(_Player, [], [], 100000000000000).	% risky
 
 quality(Board, Player, Value) :-
 	length(Board, Length),
-%	quality_aux_1(Board, Player, Length, Value).
 	((Player = p1, Enemy_node = n2, My_unit = u1); (Player = p2, Enemy_node = n1, My_unit = u2)),
 	find_node(Board, Node_x, Node_y, Enemy_node),
-	quality_aux_3(Board, My_unit, Length, Length, Node_x, Node_y, 0, Value).
+	quality_aux_1(Board, My_unit, Length, Length, Node_x, Node_y, 0, Value).
 
-quality_aux_3(Board, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
+quality_aux_1(Board, Piece, Max_x, Y, Node_x, Node_y, Temp_value, Value) :-
 	Y >= 1,
 	nth1(Y, Board, Line),
-	length(Line, Length_x),
-	quality_aux_4(Line, Piece, Length_x, Y, Node_x, Node_y, 0, Temp_value2),
+	quality_aux_2(Line, Piece, Max_x, Y, Node_x, Node_y, 0, Temp_value2),
 	Y2 is Y - 1,
 	Temp_value3 is Temp_value + Temp_value2,
-	quality_aux_3(Board, Piece, X, Y2,  Node_x, Node_y, Temp_value3, Value).
-quality_aux_3(_Board, _Piece, _X, 0, _Node_x, _Node_y, Value, Value).
+	quality_aux_1(Board, Piece, X, Y2,  Node_x, Node_y, Temp_value3, Value).
+quality_aux_1(_Board, _Piece, _Max_x, 0, _Node_x, _Node_y, Value, Value).
 
-quality_aux_4(Line, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
+quality_aux_2(Line, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
 	X >= 1,
 	(
 		(
@@ -534,35 +532,8 @@ quality_aux_4(Line, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
 	),
 	X2 is X - 1,
 	Temp_value3 is Temp_value + Temp_value2,
-	quality_aux_4(Line, Piece, X2, Y, Node_x, Node_y, Temp_value3, Value).
-quality_aux_4(_Line, _Piece, 0, _Y, _Node_x, _Node_y, Value, Value).
-
-
-quality_aux_1(Board, Player, Y, Value) :-
-	Y >= 1,
-	nth1(Y, Board, Line),
-	length(Line, Length_x),
-	quality_aux_2(Board, Player, Length_x, Y, Value2),
-	Y2 is Y - 1,
-	quality_aux_1(Board, Player, Y2, Value3),
-	Value is Value2 + Value3,
-	!.
-quality_aux_1(_Board, _Player, 0, 0).
-
-quality_aux_2(Board, Player, X, Y, Value) :-
-	X >= 1,
-	\+ check_signal(Board, Player, X, Y),
-	X2 is X - 1,
-	quality_aux_2(Board, Player, X2, Y, Value),
-	!.
-quality_aux_2(Board, Player, X, Y, Value) :-
-	X >= 1,
-	check_signal(Board, Player, X, Y),
-	X2 is X - 1,
-	quality_aux_2(Board, Player, X2, Y, Value2),
-	Value is Value2 + 1,
-	!.
-quality_aux_2(_Board, _Player, 0, _Y, 0).
+	quality_aux_2(Line, Piece, X2, Y, Node_x, Node_y, Temp_value3, Value).
+quality_aux_2(_Line, _Piece, 0, _Y, _Node_x, _Node_y, Value, Value).
 
 verify_game_over :-
 	state(_Player, Board),
