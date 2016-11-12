@@ -179,46 +179,45 @@ display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 
 /* Game logic */
 game(Type, Mode) :-
-	(
-		check_game_type(Type),
-		check_game_mode(Mode),
-		board(Board),
-		verify_board_dimensions(Board),	/* We will assume that the board is squared */
-		retract(state(_, _)),
-		assert(state(p1, Board)),	/* the youngest player begins the game */
-		repeat,
-			state(Player, _),
-			format('Player: ~s~N', Player),
-			play(Type, Mode),
-			verify_game_over,
-		state(Current_player, _),
-		next_player(Current_player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
-		show_results(Winner)
-	);
-	(
-		write('Wrong game values. Please check if you typed correctly the Type and Mode of the Game.'),
-		nl,
-		write('Type can be: cc, ch or hh.'),
-		nl,
-		write('Mode can be: easy or hard.'),
-		nl
-	).
+	check_game_type(Type),
+	check_game_mode(Mode),
+	board(Board),	
+	verify_board_dimensions(Board),	/* We will assume that the board is squared */
+	retract(state(_, _)),
+	assert(state(p1, Board)),	/* the youngest player begins the game */
+	repeat,
+		state(Player, _),
+		format('Player: ~s~N', Player),
+		play(Type, Mode),
+		verify_game_over,
+	state(Current_player, _),
+	next_player(Current_player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
+	show_results(Winner).
 	
 /* Checks if the Mode is valid */
 check_game_mode(Mode) :-
-	(Mode = easy; Mode = hard).
+	(
+		(Mode = easy; Mode = hard);
+		(write('Wrong game mode. Please check if you typed correctly the Mode of the Game.\nIt can be: easy or hard.\n'), fail)
+	),
+	!.
 
 /* Checks if the Type is valid */
 check_game_type(Type) :-
-	(Type = cc; Type = ch; Type = hh).
+	(
+		(Type = cc; Type = ch; Type = hh);
+		(write('Wrong game type. Please check if you typed correctly the Type of the Game.\nIt can be: cc, ch or hh.\n'), fail)
+	),
+	!.
 
 /* Check if the Board is squared */
 verify_board_dimensions(Board) :-
 	length(Board, Length_y),
 	(
 		verify_board_dimensions_aux(Board, Length_y);
-		(format('Invalid board dimensions.~N', []), fail)
-	).
+		(write('Invalid board dimensions.\n'), fail)
+	),
+	!.
 
 /* Verify if a Row has a given length */
 verify_board_dimensions_aux([Row | Other_rows], Length) :-
