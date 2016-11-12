@@ -184,6 +184,7 @@ game(Type, Mode) :-
 %	retract(player(p2)),
 %	assert(player(Player2)),
 	board(Board),
+	verify_board_dimensions(Board),	/* We will assume that the board is squared */
 	retract(state(_Player, _Board)),
 	assert(state(p1, Board)),	/* the youngest player begins the game */
 	repeat,
@@ -194,6 +195,20 @@ game(Type, Mode) :-
 	state(Player, _Board),
 	next_player(Player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
 	show_results(Winner).
+
+verify_board_dimensions(Board) :-
+	length(Board, Length_y),
+	(
+		verify_board_dimensions_aux(Board, Length_y);
+		(format('Invalid board dimensions.~N', []), fail)
+	).
+
+verify_board_dimensions_aux([Row | Other_rows], Length) :-
+	length(Row, Length_x),
+	Length = Length_x,
+	verify_board_dimensions_aux(Other_rows, Length).
+verify_board_dimensions_aux([], _Length).
+
 
 play(cc, Mode) :-
 	retract(state(Player, Actual_board)),
@@ -428,11 +443,9 @@ get_piece(Board, X, Y, Piece) :-
 verify_inside_borders(Board, X, Y) :-
 	X >= 1,
 	Y >= 1,
-	length(Board, Length_y),
-	Y =< Length_y,
-	nth1(Y, Board, Line),
-	length(Line, Length_x),
-	X =< Length_x.
+	length(Board, Length),
+	Y =< Length,
+	X =< Length.
 
 /* Check if the Piece belongs to the Player */
 verify_piece_player(Board, Player, Piece_x, Piece_y, Piece) :-
@@ -448,11 +461,9 @@ verify_enemy_player(Board, Player, Enemy_x, Enemy_y) :-
 best_move(Player, Mode, Board, Best) :-
 	findall(Aux_board, (
 			repeat,
-				length(Board, Length_y),
-				random(1, Length_y, Rand_y),
-				nth1(Rand_y, Board, Line),
-				length(Line, Length_x),
-				random(1, Length_x, Rand_x),
+				length(Board, Length),
+				random(1, Length, Rand_y),
+				random(1, Length, Rand_x),
 				((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
 				get_piece(Board, Rand_x, Rand_y, Piece),
 				!,
@@ -483,22 +494,21 @@ select_best_aux(Player, [Board | Other_boards], Best_board, Best_value) :-
 select_best_aux(_Player, [], [], 100000000000000).	% risky
 
 quality(Board, Player, Value) :-
-	length(Board, Length_y),
-%	quality_aux_1(Board, Player, Length_y, Value).
+	length(Board, Length),
+%	quality_aux_1(Board, Player, Length, Value).
 	((Player = p1, Enemy_node = n2, My_unit = u1); (Player = p2, Enemy_node = n1, My_unit = u2)),
 	find_node(Board, Node_x, Node_y, Enemy_node),
-	length(Board, Length_y),
-	quality_aux_3(Board, My_unit, Length_y, Node_x, Node_y, 0, Value).
+	quality_aux_3(Board, My_unit, Length, Length, Node_x, Node_y, 0, Value).
 
-quality_aux_3(Board, Piece, Y, Node_x, Node_y, Temp_value, Value) :-
+quality_aux_3(Board, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
 	Y >= 1,
 	nth1(Y, Board, Line),
 	length(Line, Length_x),
 	quality_aux_4(Line, Piece, Length_x, Y, Node_x, Node_y, 0, Temp_value2),
 	Y2 is Y - 1,
 	Temp_value3 is Temp_value + Temp_value2,
-	quality_aux_3(Board, Piece, Y2,  Node_x, Node_y, Temp_value3, Value).
-quality_aux_3(_Board, _Piece, 0, _Node_x, _Node_y, Value, Value).
+	quality_aux_3(Board, Piece, X, Y2,  Node_x, Node_y, Temp_value3, Value).
+quality_aux_3(_Board, _Piece, _X, 0, _Node_x, _Node_y, Value, Value).
 
 quality_aux_4(Line, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
 	X >= 1,
