@@ -490,14 +490,14 @@ verify_enemy_player(Board, Player, Enemy_x, Enemy_y) :-
 best_move(Player, Mode, Board, Best) :-
 	burst_move(Player, Mode, Board, Best).
 
+find_player_pieces(Board, Player, [X, Y]) :-
+	get_piece(Board, X, Y, Piece_to_move),
+	((Player = p1, (Piece_to_move = u1; Piece_to_move = n1)); (Player = p2, (Piece_to_move = u2; Piece_to_move = n2))).
+
 burst_move(Player, Mode, Board, Best) :-
-	length(Board, Length),
-	Length2 is Length + 1,
-	random(1, Length2, Rand_x),
-	random(1, Length2, Rand_y),
-	get_piece(Board, Rand_x, Rand_y, Piece_to_move),
-	((Player = p1, (Piece_to_move = u1; Piece_to_move = n1)); (Player = p2, (Piece_to_move = u2; Piece_to_move = n2))),
-	try_move(Player, Mode, Board, Rand_x, Rand_y, New_board),
+	findall(Aux_coords, find_player_pieces(Board, Player, Aux_coords), Possible_coords),
+	random_member([X, Y], Possible_coords),
+	try_move(Player, Mode, Board, X, Y, New_board),
 	(
 		(New_board = [], Best = Board);
 		(
