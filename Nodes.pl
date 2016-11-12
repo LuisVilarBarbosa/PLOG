@@ -184,10 +184,10 @@ game(Type, Mode) :-
 		check_game_mode(Mode),
 		board(Board),
 		verify_board_dimensions(Board),	/* We will assume that the board is squared */
-		retract(state(_Player, _Board)),
+		retract(state(_, _)),
 		assert(state(p1, Board)),	/* the youngest player begins the game */
 		repeat,
-			state(Player, _Board),
+			state(Player, _),
 			format('Player: ~s~N', Player),
 			play(Type, Mode),
 			verify_game_over,
@@ -237,7 +237,7 @@ play(cc, Mode) :-
 
 /* Play human-human (one set of moves) */
 play(hh, _Mode) :-
-	state(_Player, Board),
+	state(_, Board),
 	display_board(Board),
 	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~nWhich piece do you want to move?~n', []),
 	repeat,
