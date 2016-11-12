@@ -244,32 +244,36 @@ play(hh, _Mode) :-
 	display_board(Board),
 	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~nWhich piece do you want to move?~n', []),
 	repeat,
-		retract(state(Player, Actual_board)),
 		write('X: '),
 		read(X),
 		write('Y: '),
 		read(Y),
 		write('Option: '),
-		read(Num),
-		(
-			(Num = 1, rule(move_up, Player, X, Y, Actual_board, New_board));
-			(Num = 2, rule(move_down, Player, X, Y, Actual_board, New_board));
-			(Num = 3, rule(move_left, Player, X, Y, Actual_board, New_board));
-			(Num = 4, rule(move_right, Player, X, Y, Actual_board, New_board));
-			(Num = 5, rule(move_enemy_unit_up, Player, X, Y, Actual_board, New_board));
-			(Num = 6, rule(move_enemy_unit_down, Player, X, Y, Actual_board, New_board));
-			(Num = 7, rule(move_enemy_unit_left, Player, X, Y, Actual_board, New_board));
-			(Num = 8, rule(move_enemy_unit_right, Player, X, Y, Actual_board, New_board));
-			(New_board = Actual_board, write('Unable to apply the specified rule.\n'))
-		),
-		display_board(New_board),
-		assert(state(_Player, New_board)),
+		read(Choice),
+		play_hh_iteration(Player, X, Y, Choice),
+		state(_Player, New_board),
 		get_piece(New_board, X, Y, Piece),
 		((Player = p1, Piece = n1); (Player = p2, Piece = n2)),
 	next_player(Player, Next),
-	assert(state(Next, _Board)),
+	assert(state(Next, New_board)),
 	!.
 
+play_hh_iteration(Player, X, Y, Choice) :-
+	retract(state(Player, Actual_board)),
+	(
+		(Choice = 1, rule(move_up, Player, X, Y, Actual_board, New_board));
+		(Choice = 2, rule(move_down, Player, X, Y, Actual_board, New_board));
+		(Choice = 3, rule(move_left, Player, X, Y, Actual_board, New_board));
+		(Choice = 4, rule(move_right, Player, X, Y, Actual_board, New_board));
+		(Choice = 5, rule(move_enemy_unit_up, Player, X, Y, Actual_board, New_board));
+		(Choice = 6, rule(move_enemy_unit_down, Player, X, Y, Actual_board, New_board));
+		(Choice = 7, rule(move_enemy_unit_left, Player, X, Y, Actual_board, New_board));
+		(Choice = 8, rule(move_enemy_unit_right, Player, X, Y, Actual_board, New_board));
+		(New_board = Actual_board, write('Unable to apply the specified rule.\n'))
+	),
+	display_board(New_board),
+	assert(state(Player, New_board)),
+	!.
 
 play(ch, Mode) :-
 	state(p1, _Board),
@@ -358,7 +362,7 @@ check_enemies_interrupting_signal(Board, Player, Piece_x, Piece_y, Node_x, Node_
 /* Check if the signal from a Node is being blocked by an enemy unit on the same row */
 check_enemies_interrupting_signal_horizontal(Board, Player, Piece_x, Piece_y, Other_piece_x, Other_piece_y, Signal_direction) :-
 	Piece_x =\= Other_piece_x,
-	verify_enemy_player(Board, Player, Other_piece_x, Other_piece_y),
+	verify_enemy_unit_player(Board, Player, Other_piece_x, Other_piece_y),
 	(
 		(
 			(Signal_direction = left, Other_piece_x2 is Other_piece_x - 1);
@@ -370,7 +374,7 @@ check_enemies_interrupting_signal_horizontal(Board, Player, Piece_x, Piece_y, Ot
 /* Check if the signal from a Node is being blocked by an enemy unit on the same column */
 check_enemies_interrupting_signal_vertical(Board, Player, Piece_x, Piece_y, Other_piece_x, Other_piece_y, Signal_direction) :-
 	Piece_y =\= Other_piece_y,
-	verify_enemy_player(Board, Player, Other_piece_x, Other_piece_y),
+	verify_enemy_unit_player(Board, Player, Other_piece_x, Other_piece_y),
 	(
 		(Signal_direction = up, Other_piece_y2 is Other_piece_y - 1);
 		(Signal_direction = down, Other_piece_y2 is Other_piece_y + 1)
@@ -381,7 +385,7 @@ check_enemies_interrupting_signal_vertical(Board, Player, Piece_x, Piece_y, Othe
 check_enemies_interrupting_signal_diagonal(Board, Player, Piece_x, Piece_y, Other_piece_x, Other_piece_y, Signal_direction) :-
 	Piece_x =\= Other_piece_x,
 	Piece_y =\= Other_piece_y,
-	verify_enemy_player(Board, Player, Other_piece_x, Other_piece_y),
+	verify_enemy_unit_player(Board, Player, Other_piece_x, Other_piece_y),
 	(
 		(Signal_direction = diagonal_down_left, Other_piece_y2 is Other_piece_y + 1, Other_piece_x2 is Other_piece_x - 1);
 		(Signal_direction = diagonal_down_right, Other_piece_y2 is Other_piece_x + 1, Other_piece_x2 is Other_piece_x + 1);
@@ -455,7 +459,7 @@ rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Enem
 	verify_inside_borders(Board, Enemy_x, Enemy_y),
 	verify_inside_borders(Board, Piece_new_x, Piece_new_y),
 	verify_piece_player(Board, Player, Piece_orig_x, Piece_orig_y, Piece),
-	verify_enemy_player(Board, Player, Enemy_x, Enemy_y),
+	verify_enemy_unit_player(Board, Player, Enemy_x, Enemy_y),
 	get_piece(Board, Piece_new_x, Piece_new_y, sp),
 	check_signal(Board, Player, Piece_orig_x, Piece_orig_y),
 	/* action / movement */
@@ -475,27 +479,27 @@ verify_inside_borders(Board, X, Y) :-
 	Y =< Length,
 	X =< Length.
 
-/* Check if the Piece belongs to the Player */
+/* Check if the Piece belongs to the Player (Unit or Node) */
 verify_piece_player(Board, Player, Piece_x, Piece_y, Piece) :-
-	((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
-	get_piece(Board, Piece_x, Piece_y, Piece).
+	get_piece(Board, Piece_x, Piece_y, Piece),
+	((Player = p1, (Piece = u1; Piece = n1)); (Player = p2, (Piece = u2; Piece = n2))).
 
-/* Check if the Piece is an Enemy of the Player */	
-verify_enemy_player(Board, Player, Enemy_x, Enemy_y) :-
-	((Player = p1, Piece = u2); (Player = p2, Piece = u1)),
-	get_piece(Board, Enemy_x, Enemy_y, Piece).	
+/* Check if the Piece is an Enemy of the Player (only Unit) */	
+verify_enemy_unit_player(Board, Player, Enemy_x, Enemy_y) :-
+	get_piece(Board, Enemy_x, Enemy_y, Piece),
+	((Player = p1, Piece = u2); (Player = p2, Piece = u1)).	
 
 /* Calculates the best move possible */
 best_move(Player, Mode, Board, Best) :-
 	burst_move(Player, Mode, Board, Best).
 
 find_player_pieces(Board, Player, [X, Y]) :-
-	get_piece(Board, X, Y, Piece_to_move),
-	((Player = p1, (Piece_to_move = u1; Piece_to_move = n1)); (Player = p2, (Piece_to_move = u2; Piece_to_move = n2))).
+	verify_piece_player(Board, Player, X, Y, _Piece).
 
 burst_move(Player, Mode, Board, Best) :-
 	findall(Aux_coords, find_player_pieces(Board, Player, Aux_coords), Possible_coords),
 	random_member([X, Y], Possible_coords),
+	get_piece(Board, X, Y, Piece_to_move),
 	try_move(Player, Mode, Board, X, Y, New_board),
 	(
 		(New_board = [], Best = Board);
