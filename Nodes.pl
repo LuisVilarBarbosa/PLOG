@@ -464,24 +464,30 @@ verify_enemy_player(Board, Player, Enemy_x, Enemy_y) :-
 
 /* Calculates the best move possible */
 best_move(Player, Mode, Board, Best) :-
-	findall(Aux_board, (
-			repeat,
-				length(Board, Length),
-				Length2 is Length + 1,
-				random(1, Length2, Rand_y),
-				random(1, Length2, Rand_x),
-				get_piece(Board, Rand_x, Rand_y, Piece),
-				((Player = p1, (Piece = u1; Piece = n1)); (Player = p2, (Piece = u2; Piece = n2))),
-				!,
-				rule(_Move, Player, Rand_x, Rand_y, Board, Aux_board)
-			), 
-			Possible_boards),
+	burst_move(Player, Mode, Board, Best).
+
+burst_move(Player, Mode, Board, Best) :-
+	length(Board, Length),
+	Length2 is Length + 1,
+	random(1, Length2, Rand_x),
+	random(1, Length2, Rand_y),
+	get_piece(Board, Rand_x, Rand_y, Piece_to_move),
+	((Player = p1, (Piece_to_move = u1; Piece_to_move = n1)); (Player = p2, (Piece_to_move = u2; Piece_to_move = n2))),
+	try_move(Player, Mode, Board, Rand_x, Rand_y, New_board),
 	(
-		(Possible_boards = [], Best = Board);
+		(New_board = [], Best = Board);
 		(
-			(Mode = easy, nth1(1, Possible_boards, Best));
-			(Mode = hard, select_best(Player, Possible_boards, Best))
-		)
+			(Piece_to_move = n1; Piece_to_move = n2),
+			Best = New_board
+		);
+		burst_move(Player, Mode, New_board, Best)
+	).
+
+try_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
+	findall(Aux_board, (rule(_Move, Player, Piece_x, Piece_y, Board, Aux_board)), Possible_boards),
+	(
+		(Mode = easy, nth1(1, Possible_boards, Best));
+		(Mode = hard, select_best(Player, Possible_boards, Best))
 	).
 
 select_best(Player, Possible_boards, Best) :-
