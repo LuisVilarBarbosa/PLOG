@@ -1,4 +1,4 @@
-:-use_module(library(lists)).
+:- use_module(library(lists)).
 :- use_module(library(random)).
 
 :- dynamic player/1.
@@ -205,7 +205,7 @@ play(cc, Mode) :-
 
 play(hh, _Mode) :-
 	retract(state(Player, Actual_board)),
-	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~nWich piece do you want to move?~n', []),
+	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~nWhich piece do you want to move?~n', []),
 	write('X: '),
 	read(X),
 	write('Y: '),
@@ -232,7 +232,7 @@ play(ch, Mode) :-
 	state(p1, _Board),
 	play(cc, Mode).
 
-play(ch, _Mode) :-
+play(ch, Mode) :-
 	state(p2, _Board),
 	play(hh, Mode).
 
