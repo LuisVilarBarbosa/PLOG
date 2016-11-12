@@ -239,7 +239,8 @@ play(hh, _Mode) :-
 		(Num = 5, rule(move_enemy_unit_up, Player, X, Y, Actual_board, New_board));
 		(Num = 6, rule(move_enemy_unit_down, Player, X, Y, Actual_board, New_board));
 		(Num = 7, rule(move_enemy_unit_left, Player, X, Y, Actual_board, New_board));
-		(Num = 8, rule(move_enemy_unit_right, Player, X, Y, Actual_board, New_board))
+		(Num = 8, rule(move_enemy_unit_right, Player, X, Y, Actual_board, New_board));
+		(New_board = Actual_board, write('Unable to apply the specified rule.'))
 	),
 	display_board(New_board),
 	next_player(Player, Next),
@@ -511,7 +512,7 @@ quality_aux_1(Board, Piece, Max_x, Y, Node_x, Node_y, Temp_value, Value) :-
 	quality_aux_2(Line, Piece, Max_x, Y, Node_x, Node_y, 0, Temp_value2),
 	Y2 is Y - 1,
 	Temp_value3 is Temp_value + Temp_value2,
-	quality_aux_1(Board, Piece, X, Y2,  Node_x, Node_y, Temp_value3, Value).
+	quality_aux_1(Board, Piece, Max_x, Y2,  Node_x, Node_y, Temp_value3, Value).
 quality_aux_1(_Board, _Piece, _Max_x, 0, _Node_x, _Node_y, Value, Value).
 
 quality_aux_2(Line, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
