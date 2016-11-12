@@ -62,7 +62,7 @@ state(_Player, _Board).
 
 /* Display */
 display_board(Board) :-
-	length(Board, Length),
+	length(Board, Length),	/* it is considered less than 10, otherwise the indexes will be wrongly placed */
 	write('  '),
 	display_board_cols_indexes(1, Length),
 	nl,
