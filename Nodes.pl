@@ -433,18 +433,54 @@ select_best_aux(Player, [Board | Other_boards], Best_board, Best_value) :-
 	select_best_aux(Player, Other_boards, Best_board2, Best_value2),
 	quality(Board, Player, Value),
 	(
-		(Value >= Best_value2,
+		(Value =< Best_value2,
 		Best_value is Value,
 		Best_board = Board);
-		(Value < Best_value2,
+		(Value > Best_value2,
 		Best_value is Best_value2,
 		Best_board = Best_board2)
 	).
-select_best_aux(_Player, [], [], 0).
+select_best_aux(_Player, [], [], 100000000000000).	% risky
 
 quality(Board, Player, Value) :-
 	length(Board, Length_y),
-	quality_aux_1(Board, Player, Length_y, Value).
+%	quality_aux_1(Board, Player, Length_y, Value).
+	((Player = p1, Enemy_node = n2, My_unit = u1); (Player = p2, Enemy_node = n1, My_unit = u2)),
+	find_node(Board, Node_x, Node_y, Enemy_node),
+	length(Board, Length_y),
+	quality_aux_3(Board, My_unit, Length_y, Node_x, Node_y, 0, Value).
+
+quality_aux_3(Board, Piece, Y, Node_x, Node_y, Temp_value, Value) :-
+	Y >= 1,
+	nth1(Y, Board, Line),
+	length(Line, Length_x),
+	quality_aux_4(Line, Piece, Length_x, Y, Node_x, Node_y, 0, Temp_value2),
+	Y2 is Y - 1,
+	Temp_value3 is Temp_value + Temp_value2,
+	quality_aux_3(Board, Piece, Y2,  Node_x, Node_y, Temp_value3, Value).
+quality_aux_3(_Board, _Piece, 0, _Node_x, _Node_y, Value, Value).
+
+quality_aux_4(Line, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
+	X >= 1,
+	(
+		(
+			nth1(X, Line, Piece),
+			X_distance is Node_x - X,
+			Y_distance is Node_y - Y,
+			Abs_X_distance is abs(X_distance),
+			Abs_Y_distance is abs(Y_distance),
+			Temp_value2 is Abs_X_distance + Abs_Y_distance
+		);
+		(
+			\+ nth1(X, Line, Piece),
+			Temp_value2 = 0
+		)
+	),
+	X2 is X - 1,
+	Temp_value3 is Temp_value + Temp_value2,
+	quality_aux_4(Line, Piece, X2, Y, Node_x, Node_y, Temp_value3, Value).
+quality_aux_4(_Line, _Piece, 0, _Y, _Node_x, _Node_y, Value, Value).
+
 
 quality_aux_1(Board, Player, Y, Value) :-
 	Y >= 1,
