@@ -62,15 +62,20 @@ state(_Player, _Board).
 
 /* Display */
 display_board(Board) :-
-	display_board_rows(Board, Board),
+	write('  1 2 3 4 5 6 7 8 9'),
+	nl,
+	display_board_rows(Board, Board, 0),
 	nl,
 	nl.
 	
-display_board_rows([Row | []], _Board) :-
+display_board_rows([Row | []], _Board, Index) :-
 	display_board_middle_bottom_row(Row),
 	nl,
 	display_board_row_pieces(Row).
-display_board_rows([Row | Other_rows], Board) :-	/* Display board up half */
+display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board up half */
+	Index2 is Index +1,
+	write(Index2),
+	write(' '),
 	length(Board, All_board_length),
 	length(Other_rows, Left_board_length),
 	Left_board_length1 is Left_board_length + 1,
@@ -80,8 +85,11 @@ display_board_rows([Row | Other_rows], Board) :-	/* Display board up half */
 	nl, 
 	display_board_middle_up_row(Row),
 	nl,
-	display_board_rows(Other_rows, Board).
-display_board_rows([Row | Other_rows], Board) :-	/* Display board middle */
+	display_board_rows(Other_rows, Board, Index2).
+display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board middle */
+	Index2 is Index +1,
+	write(Index2),
+	write(' '),
 	length(Board, All_board_length),
 	length(Other_rows, Left_board_length),
 	Left_board_length1 is Left_board_length + 1,
@@ -89,8 +97,11 @@ display_board_rows([Row | Other_rows], Board) :-	/* Display board middle */
 	Left_board_length1 == Half_board_length,
 	display_board_row_pieces(Row), 
 	nl,
-	display_board_rows(Other_rows, Board).
-display_board_rows([Row | Other_rows], Board) :-	/* Display board bottom half */
+	display_board_rows(Other_rows, Board, Index2).
+display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board bottom half */
+	Index2 is Index +1,
+	write(Index2),
+	write(' '),
 	length(Board, All_board_length),
 	length(Other_rows, Left_board_length),
 	Left_board_length1 is Left_board_length + 1,
@@ -100,7 +111,7 @@ display_board_rows([Row | Other_rows], Board) :-	/* Display board bottom half */
 	nl, 
 	display_board_row_pieces(Row), 
 	nl,
-	display_board_rows(Other_rows, Board).
+	display_board_rows(Other_rows, Board, Index2).
 
 translate(sp, 'O').
 translate(n1, 'A').
@@ -188,7 +199,7 @@ play(cc, Mode) :-
 
 play(hh, _Mode) :-
 	retract(state(Player, Actual_board)),
-	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~n', []),
+	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~nWich piece do you want to move?~n', []),
 	write('X: '),
 	read(X),
 	write('Y: '),
@@ -217,7 +228,7 @@ play(ch, Mode) :-
 
 play(ch, _Mode) :-
 	state(p2, _Board),
-	play(hh).
+	play(hh, Mode).
 
 /* Signal functions */
 
