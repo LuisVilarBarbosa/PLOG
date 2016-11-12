@@ -179,14 +179,6 @@ display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 
 /* Game logic */
 game(Type, Mode) :-
-%	write('Player 1 (younger): '),
-%	read(Player1),
-%	write('Player 2 (older): '),
-%	read(Player2),
-%	retract(player(p1)),
-%	assert(player(Player1)),
-%	retract(player(p2)),
-%	assert(player(Player2)),
 	(
 		check_game_type(Type),
 		check_game_mode(Mode),
@@ -202,12 +194,14 @@ game(Type, Mode) :-
 		next_player(Player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
 		show_results(Winner)
 	);
-	(write('Wrong game values. Please check if you typed correctly the Type and Mode of the Game.'),
-	nl,
-	write('Type can be: cc, ch or hh.'),
-	nl,
-	write('Mode can be: easy or hard.'),
-	nl).
+	(
+		write('Wrong game values. Please check if you typed correctly the Type and Mode of the Game.'),
+		nl,
+		write('Type can be: cc, ch or hh.'),
+		nl,
+		write('Mode can be: easy or hard.'),
+		nl
+	).
 	
 /* Checks if the Mode is valid */
 check_game_mode(Mode) :-
@@ -217,6 +211,7 @@ check_game_mode(Mode) :-
 check_game_type(Type) :-
 	(Type = cc; Type = ch; Type = hh).
 
+/* Check if the Board is squared */
 verify_board_dimensions(Board) :-
 	length(Board, Length_y),
 	(
@@ -224,13 +219,14 @@ verify_board_dimensions(Board) :-
 		(format('Invalid board dimensions.~N', []), fail)
 	).
 
+/* Verify if a Row has a given length */
 verify_board_dimensions_aux([Row | Other_rows], Length) :-
 	length(Row, Length_x),
 	Length = Length_x,
 	verify_board_dimensions_aux(Other_rows, Length).
 verify_board_dimensions_aux([], _Length).
 
-
+/* Play computer-computer (one set of moves) */
 play(cc, Mode) :-
 	retract(state(Player, Actual_board)),
 	best_move(Player, Mode, Actual_board, Best_board),
@@ -239,6 +235,7 @@ play(cc, Mode) :-
 	assert(state(Next, Best_board)),
 	!.
 
+/* Play human-human (one set of moves) */
 play(hh, _Mode) :-
 	state(_Player, Board),
 	display_board(Board),
@@ -250,15 +247,26 @@ play(hh, _Mode) :-
 		read(Y),
 		write('Option: '),
 		read(Choice),
-		play_hh_iteration(Player, X, Y, Choice),
-		state(_Player, New_board),
-		get_piece(New_board, X, Y, Piece),
-		((Player = p1, Piece = n1); (Player = p2, Piece = n2)),
+		state(Player, Old_board),
+		get_piece(Old_board, X, Y, Piece),
+		play_hh_iteration(X, Y, Choice),
+		((Player = p1, Piece = n1); (Player = p2, Piece = n2)),	/* termination condition */
+	retract(state(Player, New_board)),
 	next_player(Player, Next),
 	assert(state(Next, New_board)),
 	!.
 
-play_hh_iteration(Player, X, Y, Choice) :-
+/* Play computer-human (one set of moves for each) */
+play(ch, Mode) :-
+	state(p1, _Board),
+	play(cc, Mode).
+
+play(ch, Mode) :-
+	state(p2, _Board),
+	play(hh, Mode).
+
+/* Play human-human (just one move) */
+play_hh_iteration(X, Y, Choice) :-
 	retract(state(Player, Actual_board)),
 	(
 		(Choice = 1, rule(move_up, Player, X, Y, Actual_board, New_board));
@@ -274,14 +282,6 @@ play_hh_iteration(Player, X, Y, Choice) :-
 	display_board(New_board),
 	assert(state(Player, New_board)),
 	!.
-
-play(ch, Mode) :-
-	state(p1, _Board),
-	play(cc, Mode).
-
-play(ch, Mode) :-
-	state(p2, _Board),
-	play(hh, Mode).
 
 /* Signal functions */
 
@@ -493,9 +493,6 @@ verify_enemy_unit_player(Board, Player, Enemy_x, Enemy_y) :-
 best_move(Player, Mode, Board, Best) :-
 	burst_move(Player, Mode, Board, Best).
 
-find_player_pieces(Board, Player, [X, Y]) :-
-	verify_piece_player(Board, Player, X, Y, _Piece).
-
 burst_move(Player, Mode, Board, Best) :-
 	findall(Aux_coords, find_player_pieces(Board, Player, Aux_coords), Possible_coords),
 	random_member([X, Y], Possible_coords),
@@ -510,6 +507,9 @@ burst_move(Player, Mode, Board, Best) :-
 		burst_move(Player, Mode, New_board, Best)
 	),
 	!.
+
+find_player_pieces(Board, Player, [X, Y]) :-
+	verify_piece_player(Board, Player, X, Y, _Piece).
 
 try_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
 	findall(Aux_board, (rule(_Move, Player, Piece_x, Piece_y, Board, Aux_board)), Possible_boards),
@@ -588,7 +588,7 @@ verify_blocked_right(Board, Enemy_unit, X, Y) :- X2 is X + 1, (nth1(Y, Board, Li
 verify_blocked_up(Board, Enemy_unit, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Line), nth1(X, Line, Enemy_unit))).
 verify_blocked_down(Board, Enemy_unit, X, Y) :- Y2 is Y + 1, length(Board, Length_y), (Y2 > Length_y; (nth1(Y2, Board, Line), nth1(X, Line, Enemy_unit))).
 
-next_player(Player, Next) :- state(Player, _Board), player(Next), Player \= Next, !.
+next_player(Player, Next) :- player(Player), player(Next), Player \= Next.
 
 show_results(Winner) :- format('~NWinner: ~s~N', Winner).
 
