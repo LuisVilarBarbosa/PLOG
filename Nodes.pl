@@ -171,7 +171,7 @@ game(Type, Mode) :-
 	assert(state(p1, Board)),	/* the youngest player begins the game */
 	repeat,
 		state(Player, _Board),
-		format("Player: ~s~N", Player),
+		format('Player: ~s~N', Player),
 		play(Type, Mode),
 		verify_game_over,
 	state(Player, _Board),
@@ -186,7 +186,30 @@ play(cc, Mode) :-
 	assert(state(Next, Best_board)),
 	!.
 
-% play(hh, _Mode) :-
+play(hh, _Mode) :-
+	retract(state(Player, Actual_board)),
+	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~n', []),
+	write('X: '),
+	read(X),
+	write('Y: '),
+	read(Y),
+	write('Option: '),
+	read(Num),
+	(
+		(Num = 1, rule(move_up, Player, X, Y, Actual_board, New_board));
+		(Num = 2, rule(move_down, Player, X, Y, Actual_board, New_board));
+		(Num = 3, rule(move_left, Player, X, Y, Actual_board, New_board));
+		(Num = 4, rule(move_right, Player, X, Y, Actual_board, New_board));
+		(Num = 5, rule(move_enemy_unit_up, Player, X, Y, Actual_board, New_board));
+		(Num = 6, rule(move_enemy_unit_down, Player, X, Y, Actual_board, New_board));
+		(Num = 7, rule(move_enemy_unit_left, Player, X, Y, Actual_board, New_board));
+		(Num = 8, rule(move_enemy_unit_right, Player, X, Y, Actual_board, New_board))
+	),
+	display_board(New_board),
+	next_player(Player, Next),
+	assert(state(Next, New_board)),
+	!.
+
 
 play(ch, Mode) :-
 	state(p1, _Board),
