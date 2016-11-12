@@ -203,7 +203,12 @@ game(Type, Mode) :-
 		next_player(Player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
 		show_results(Winner)
 	);
-	write('Wrong play type.').
+	(write('Wrong game values. Please check if you typed correctly the Type and Mode of the Game.'),
+	nl,
+	write('Type can be: cc, ch or hh.'),
+	nl,
+	write('Mode can be: easy or hard.'),
+	nl).
 	
 /* Checks if the Mode is valid */
 check_game_mode(Mode) :-
