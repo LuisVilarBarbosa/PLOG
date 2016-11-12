@@ -191,7 +191,8 @@ game(Type, Mode) :-
 			format('Player: ~s~N', Player),
 			play(Type, Mode),
 			verify_game_over,
-		next_player(Player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
+		state(Current_player, _),
+		next_player(Current_player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
 		show_results(Winner)
 	);
 	(
