@@ -199,7 +199,6 @@ game(Type, Mode) :-
 			format('Player: ~s~N', Player),
 			play(Type, Mode),
 			verify_game_over,
-		state(Player, _Board),
 		next_player(Player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
 		show_results(Winner)
 	);
@@ -534,7 +533,7 @@ select_best_aux(_Player, [], [], 100000000000000).	% risky
 quality(Board, Player, Value) :-
 	length(Board, Length),
 	((Player = p1, Enemy_node = n2, My_unit = u1); (Player = p2, Enemy_node = n1, My_unit = u2)),
-	find_node(Board, Node_x, Node_y, Enemy_node),
+	get_piece(Board, Node_x, Node_y, Enemy_node),
 	quality_aux_1(Board, My_unit, Length, Length, Node_x, Node_y, 0, Value).
 
 quality_aux_1(Board, Piece, Max_x, Y, Node_x, Node_y, Temp_value, Value) :-
@@ -569,18 +568,8 @@ quality_aux_2(_Line, _Piece, 0, _Y, _Node_x, _Node_y, Value, Value).
 
 verify_game_over :-
 	state(_Player, Board),
-	find_node(Board, X, Y, Node),
+	get_piece(Board, X, Y, Node),
 	verify_blocked(Board, Node, X, Y).
-
-find_node(Board, X, Y, Node) :-
-	find_node_aux(Board, 1, X, Y, Node).
-
-find_node_aux([Line | _Other_lines], Pos_y, X, Y, Node) :-
-	((nth1(X, Line, n1), Node = n1); (nth1(X, Line, n2), Node = n2)),
-	Y = Pos_y.
-find_node_aux([_Line | Other_lines], Pos_y, X, Y, Node) :-
-	Next_pos_y is Pos_y + 1,
-	find_node_aux(Other_lines, Next_pos_y, X, Y, Node).
 
 verify_blocked(Board, Node, X, Y) :-
 	((Node = n1, Enemy_unit = u2); (Node = n2, Enemy_unit = u1)),
@@ -595,7 +584,7 @@ verify_blocked_right(Board, Enemy_unit, X, Y) :- X2 is X + 1, (nth1(Y, Board, Li
 verify_blocked_up(Board, Enemy_unit, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Line), nth1(X, Line, Enemy_unit))).
 verify_blocked_down(Board, Enemy_unit, X, Y) :- Y2 is Y + 1, length(Board, Length_y), (Y2 > Length_y; (nth1(Y2, Board, Line), nth1(X, Line, Enemy_unit))).
 
-next_player(Player, Next) :- player(Player), player(Next), Player \= Next.
+next_player(Player, Next) :- state(Player, _Board), player(Next), Player \= Next, !.
 
 show_results(Winner) :- format('~NWinner: ~s~N', Winner).
 
