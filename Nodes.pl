@@ -243,23 +243,26 @@ play(cc, Mode) :-
 play(hh, _Mode) :-
 	retract(state(Player, Actual_board)),
 	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~nWhich piece do you want to move?~n', []),
-	write('X: '),
-	read(X),
-	write('Y: '),
-	read(Y),
-	write('Option: '),
-	read(Num),
-	(
-		(Num = 1, rule(move_up, Player, X, Y, Actual_board, New_board));
-		(Num = 2, rule(move_down, Player, X, Y, Actual_board, New_board));
-		(Num = 3, rule(move_left, Player, X, Y, Actual_board, New_board));
-		(Num = 4, rule(move_right, Player, X, Y, Actual_board, New_board));
-		(Num = 5, rule(move_enemy_unit_up, Player, X, Y, Actual_board, New_board));
-		(Num = 6, rule(move_enemy_unit_down, Player, X, Y, Actual_board, New_board));
-		(Num = 7, rule(move_enemy_unit_left, Player, X, Y, Actual_board, New_board));
-		(Num = 8, rule(move_enemy_unit_right, Player, X, Y, Actual_board, New_board));
-		(New_board = Actual_board, write('Unable to apply the specified rule.'))
-	),
+	repeat,
+		write('X: '),
+		read(X),
+		write('Y: '),
+		read(Y),
+		write('Option: '),
+		read(Num),
+		(
+			(Num = 1, rule(move_up, Player, X, Y, Actual_board, New_board));
+			(Num = 2, rule(move_down, Player, X, Y, Actual_board, New_board));
+			(Num = 3, rule(move_left, Player, X, Y, Actual_board, New_board));
+			(Num = 4, rule(move_right, Player, X, Y, Actual_board, New_board));
+			(Num = 5, rule(move_enemy_unit_up, Player, X, Y, Actual_board, New_board));
+			(Num = 6, rule(move_enemy_unit_down, Player, X, Y, Actual_board, New_board));
+			(Num = 7, rule(move_enemy_unit_left, Player, X, Y, Actual_board, New_board));
+			(Num = 8, rule(move_enemy_unit_right, Player, X, Y, Actual_board, New_board));
+			(New_board = Actual_board, write('Unable to apply the specified rule.\n'))
+		),
+		get_piece(Actual_board, X, Y, Piece),
+		((Player = p1, Piece = n1); (Player = p2, Piece = n2)),
 	display_board(New_board),
 	next_player(Player, Next),
 	assert(state(Next, New_board)),
