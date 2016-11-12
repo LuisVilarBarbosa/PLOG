@@ -241,9 +241,11 @@ play(cc, Mode) :-
 	!.
 
 play(hh, _Mode) :-
-	retract(state(Player, Actual_board)),
+	state(_Player, Board),
+	display_board(Board),
 	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~nWhich piece do you want to move?~n', []),
 	repeat,
+		retract(state(Player, Actual_board)),
 		write('X: '),
 		read(X),
 		write('Y: '),
@@ -261,11 +263,12 @@ play(hh, _Mode) :-
 			(Num = 8, rule(move_enemy_unit_right, Player, X, Y, Actual_board, New_board));
 			(New_board = Actual_board, write('Unable to apply the specified rule.\n'))
 		),
-		get_piece(Actual_board, X, Y, Piece),
+		display_board(New_board),
+		assert(state(_Player, New_board)),
+		get_piece(New_board, X, Y, Piece),
 		((Player = p1, Piece = n1); (Player = p2, Piece = n2)),
-	display_board(New_board),
 	next_player(Player, Next),
-	assert(state(Next, New_board)),
+	assert(state(Next, _Board)),
 	!.
 
 
