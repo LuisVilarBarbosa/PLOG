@@ -187,18 +187,31 @@ game(Type, Mode) :-
 %	assert(player(Player1)),
 %	retract(player(p2)),
 %	assert(player(Player2)),
-	board(Board),
-	verify_board_dimensions(Board),	/* We will assume that the board is squared */
-	retract(state(_Player, _Board)),
-	assert(state(p1, Board)),	/* the youngest player begins the game */
-	repeat,
+	(
+		check_game_type(Type),
+		check_game_mode(Mode),
+		board(Board),
+		verify_board_dimensions(Board),	/* We will assume that the board is squared */
+		retract(state(_Player, _Board)),
+		assert(state(p1, Board)),	/* the youngest player begins the game */
+		repeat,
+			state(Player, _Board),
+			format('Player: ~s~N', Player),
+			play(Type, Mode),
+			verify_game_over,
 		state(Player, _Board),
-		format('Player: ~s~N', Player),
-		play(Type, Mode),
-		verify_game_over,
-	state(Player, _Board),
-	next_player(Player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
-	show_results(Winner).
+		next_player(Player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
+		show_results(Winner)
+	);
+	write('Wrong play type.').
+	
+/* Checks if the Mode is valid */
+check_game_mode(Mode) :-
+	(Mode = easy; Mode = hard).
+
+/* Checks if the Type is valid */
+check_game_type(Type) :-
+	(Type = cc; Type = ch; Type = hh).
 
 verify_board_dimensions(Board) :-
 	length(Board, Length_y),
