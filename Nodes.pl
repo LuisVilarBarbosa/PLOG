@@ -581,13 +581,13 @@ verify_game_over :-
 	get_piece(Board, X, Y, Node),
 	verify_blocked(Board, Node, X, Y).
 
-/* Verify if a Node is surround by enemy Units */
+/* Verify if a Node is surround by enemy pieces */
 verify_blocked(Board, Node, X, Y) :-
-	((Node = n1, Enemy_unit = u2); (Node = n2, Enemy_unit = u1)),
-	verify_blocked_left(Board, Enemy_unit, X, Y),
-	verify_blocked_right(Board, Enemy_unit, X, Y),
-	verify_blocked_up(Board, Enemy_unit, X, Y),
-	verify_blocked_down(Board, Enemy_unit, X, Y).
+	((Node = n1, Enemy_unit = u2, Enemy_node = n2); (Node = n2, Enemy_unit = u1, Enemy_node = n1)),
+	(verify_blocked_left(Board, Enemy_unit, X, Y); verify_blocked_left(Board, Enemy_node, X, Y)),
+	(verify_blocked_right(Board, Enemy_unit, X, Y); verify_blocked_right(Board, Enemy_node, X, Y)),
+	(verify_blocked_up(Board, Enemy_unit, X, Y); verify_blocked_up(Board, Enemy_node, X, Y)),
+	(verify_blocked_down(Board, Enemy_unit, X, Y); verify_blocked_down(Board, Enemy_node, X, Y)).
 
 /* Verify if one side of the [X,Y] piece is blocked by an Enemy_unit */
 /* If 'X2' or 'Y2' out of borders 'yes' will be returned, as desired */
