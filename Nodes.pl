@@ -459,16 +459,17 @@ verify_enemy_player(Board, Player, Enemy_x, Enemy_y) :-
 
 /* Calculates the best move possible */
 best_move(Player, Mode, Board, Best) :-
-	findall(Aux_board, (
-			repeat,
+	findall(Aux_board, 
+			(repeat,
 				length(Board, Length),
-				random(1, Length, Rand_y),
-				random(1, Length, Rand_x),
-				((Player = p1, Piece = u1); (Player = p2, Piece = u2)),
-				get_piece(Board, Rand_x, Rand_y, Piece),
+				Length2 is Length + 1,
+				random(1, Length2, Rand_y),
+				random(1, Length2, Rand_x),
+				verify_piece_player(Board, Player, Rand_x, Rand_y, _Piece),
 				!,
 				rule(_Move, Player, Rand_x, Rand_y, Board, Aux_board)
-		), Possible_boards),
+			), 
+			Possible_boards),
 	(
 		(Possible_boards = [], Best = Board);
 		(
