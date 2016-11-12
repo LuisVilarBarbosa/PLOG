@@ -515,7 +515,7 @@ find_player_pieces(Board, Player, [X, Y]) :-
 try_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
 	findall(Aux_board, (rule(_Move, Player, Piece_x, Piece_y, Board, Aux_board)), Possible_boards),
 	(
-		(Mode = easy, nth1(1, Possible_boards, Best));
+		(Mode = easy, (random_member(Best, Possible_boards); Best = Board));
 		(Mode = hard, select_best(Player, Possible_boards, Best))
 	).
 
