@@ -69,39 +69,42 @@ display_board(Board) :-
 	nl.
 	
 display_board_rows([Row | []], _Board, Index) :-
+	Index2 is Index +1,
 	display_board_middle_bottom_row(Row),
 	nl,
+	write(Index2),
+	write(' '),
 	display_board_row_pieces(Row).
 display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board up half */
 	Index2 is Index +1,
-	write(Index2),
-	write(' '),
 	length(Board, All_board_length),
 	length(Other_rows, Left_board_length),
 	Left_board_length1 is Left_board_length + 1,
 	Half_board_length is All_board_length >> 1,		/* integer division by 2 */
 	Left_board_length1 > Half_board_length,
+	write(Index2),
+	write(' '),
 	display_board_row_pieces(Row), 
 	nl, 
+	write('  '),
 	display_board_middle_up_row(Row),
 	nl,
 	display_board_rows(Other_rows, Board, Index2).
 display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board middle */
 	Index2 is Index +1,
-	write(Index2),
-	write(' '),
 	length(Board, All_board_length),
 	length(Other_rows, Left_board_length),
 	Left_board_length1 is Left_board_length + 1,
 	Half_board_length is All_board_length >> 1,		/* integer division by 2 */
 	Left_board_length1 == Half_board_length,
-	display_board_row_pieces(Row), 
+	write(Index2),
+	write(' '),
+	display_board_row_pieces(Row),
 	nl,
+	write('  '),
 	display_board_rows(Other_rows, Board, Index2).
 display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board bottom half */
 	Index2 is Index +1,
-	write(Index2),
-	write(' '),
 	length(Board, All_board_length),
 	length(Other_rows, Left_board_length),
 	Left_board_length1 is Left_board_length + 1,
@@ -109,8 +112,11 @@ display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board bottom 
 	Left_board_length1 < Half_board_length,
 	display_board_middle_bottom_row(Row),
 	nl, 
+	write(Index2),
+	write(' '),
 	display_board_row_pieces(Row), 
 	nl,
+	write('  '),
 	display_board_rows(Other_rows, Board, Index2).
 
 translate(sp, 'O').
