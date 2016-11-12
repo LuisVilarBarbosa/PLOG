@@ -62,11 +62,20 @@ state(_Player, _Board).
 
 /* Display */
 display_board(Board) :-
-	write('  1 2 3 4 5 6 7 8 9'),
+	length(Board, Length),
+	write('  '),
+	display_board_cols_indexes(1, Length),
 	nl,
 	display_board_rows(Board, Board, 0),
 	nl,
 	nl.
+
+display_board_cols_indexes(Index, Max_index) :-
+	Index =< Max_index,
+	format('~d ', [Index]),
+	Index2 is Index + 1,
+	display_board_cols_indexes(Index2, Max_index).
+display_board_cols_indexes(Index, Max_index) :- Index > Max_index.
 	
 display_board_rows([Row | []], _Board, Index) :-
 	Index2 is Index +1,
@@ -459,8 +468,8 @@ verify_enemy_player(Board, Player, Enemy_x, Enemy_y) :-
 
 /* Calculates the best move possible */
 best_move(Player, Mode, Board, Best) :-
-	findall(Aux_board, 
-			(repeat,
+	findall(Aux_board, (
+			repeat,
 				length(Board, Length),
 				Length2 is Length + 1,
 				random(1, Length2, Rand_y),
