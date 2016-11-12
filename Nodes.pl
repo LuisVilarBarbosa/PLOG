@@ -469,7 +469,8 @@ best_move(Player, Mode, Board, Best) :-
 				Length2 is Length + 1,
 				random(1, Length2, Rand_y),
 				random(1, Length2, Rand_x),
-				verify_piece_player(Board, Player, Rand_x, Rand_y, _Piece),
+				get_piece(Board, Rand_x, Rand_y, Piece),
+				((Player = p1, (Piece = u1; Piece = n1)); (Player = p2, (Piece = u2; Piece = n2))),
 				!,
 				rule(_Move, Player, Rand_x, Rand_y, Board, Aux_board)
 			), 
