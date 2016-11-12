@@ -230,7 +230,7 @@ verify_board_dimensions_aux([], _Length).
 /* Play computer-computer (one set of moves) */
 play(cc, Mode) :-
 	retract(state(Player, Actual_board)),
-	best_move(Player, Mode, Actual_board, Best_board),
+	burst_move(Player, Mode, Actual_board, Best_board),
 	display_board(Best_board),
 	next_player(Player, Next),
 	assert(state(Next, Best_board)),
@@ -467,12 +467,12 @@ rule_jump_aux(Player, Piece_orig_x, Piece_orig_y, Piece_new_x, Piece_new_y, Enem
 	set_piece(Board, Piece_orig_x, Piece_orig_y, sp, New_board2),
 	set_piece(New_board2, Piece_new_x, Piece_new_y, Piece, New_board).
 
-/* Get the symbol on the position X,Y of the Board */
+/* Get the symbol on the position [X,Y] of the Board */
 get_piece(Board, X, Y, Piece) :-
-	nth1(Y, Board, Line),
-	nth1(X, Line, Piece).
+	nth1(Y, Board, Row),
+	nth1(X, Row, Piece).
 
-/* Check if the position X,Y is valid, is inside the borders of the Board */
+/* Check if the position [X,Y] is valid / is inside the borders of the Board */
 verify_inside_borders(Board, X, Y) :-
 	X >= 1,
 	Y >= 1,
@@ -490,17 +490,14 @@ verify_enemy_unit_player(Board, Player, Enemy_x, Enemy_y) :-
 	get_piece(Board, Enemy_x, Enemy_y, Piece),
 	((Player = p1, Piece = u2); (Player = p2, Piece = u1)).	
 
-/* Calculates the best move possible */
-best_move(Player, Mode, Board, Best) :-
-	burst_move(Player, Mode, Board, Best).
-
+/* Calculate a set of possible moves (greedy at each move) */
 burst_move(Player, Mode, Board, Best) :-
 	findall(Aux_coords, find_player_pieces(Board, Player, Aux_coords), Possible_coords),
 	random_member([X, Y], Possible_coords),
 	get_piece(Board, X, Y, Piece_to_move),
-	try_move(Player, Mode, Board, X, Y, New_board),
+	best_move(Player, Mode, Board, X, Y, New_board),
 	(
-		(New_board = [], Best = Board);
+		(New_board = [], Best = Board);	/* it is not possible to create a better Board */
 		(
 			(Piece_to_move = n1; Piece_to_move = n2),
 			Best = New_board
@@ -509,19 +506,23 @@ burst_move(Player, Mode, Board, Best) :-
 	),
 	!.
 
+/* Find the position of the Player pieces (Units and Nodes) */
 find_player_pieces(Board, Player, [X, Y]) :-
 	verify_piece_player(Board, Player, X, Y, _Piece).
 
-try_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
+/* Calculate the best move to apply to a specific piece */
+best_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
 	findall(Aux_board, (rule(_Move, Player, Piece_x, Piece_y, Board, Aux_board)), Possible_boards),
 	(
 		(Mode = easy, (random_member(Best, Possible_boards); Best = Board));
 		(Mode = hard, select_best(Player, Possible_boards, Best))
 	).
 
+/* Select the best board of those presented */
 select_best(Player, Possible_boards, Best) :-
 	select_best_aux(Player, Possible_boards, Best, _Best_value).
 
+/* Verify if the passed board is better or not than others */
 select_best_aux(Player, [Board | Other_boards], Best_board, Best_value) :-
 	select_best_aux(Player, Other_boards, Best_board2, Best_value2),
 	quality(Board, Player, Value),
@@ -533,28 +534,31 @@ select_best_aux(Player, [Board | Other_boards], Best_board, Best_value) :-
 		Best_value is Best_value2,
 		Best_board = Best_board2)
 	).
-select_best_aux(_Player, [], [], 100000000000000).	% risky
+select_best_aux(_Player, [], [], 100000000000000).	/* dangerous value (limiting) */
 
+/* Calculate the sum of the distances of all the Units of the Player regarding the enemy Node */
 quality(Board, Player, Value) :-
 	length(Board, Length),
 	((Player = p1, Enemy_node = n2, My_unit = u1); (Player = p2, Enemy_node = n1, My_unit = u2)),
 	get_piece(Board, Node_x, Node_y, Enemy_node),
 	quality_aux_1(Board, My_unit, Length, Length, Node_x, Node_y, 0, Value).
 
+/* Calculate the distances desired by 'quality' row by row */
 quality_aux_1(Board, Piece, Max_x, Y, Node_x, Node_y, Temp_value, Value) :-
 	Y >= 1,
-	nth1(Y, Board, Line),
-	quality_aux_2(Line, Piece, Max_x, Y, Node_x, Node_y, 0, Temp_value2),
+	nth1(Y, Board, Row),
+	quality_aux_2(Row, Piece, Max_x, Y, Node_x, Node_y, 0, Temp_value2),
 	Y2 is Y - 1,
 	Temp_value3 is Temp_value + Temp_value2,
 	quality_aux_1(Board, Piece, Max_x, Y2,  Node_x, Node_y, Temp_value3, Value).
 quality_aux_1(_Board, _Piece, _Max_x, 0, _Node_x, _Node_y, Value, Value).
 
-quality_aux_2(Line, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
+/* Calculate the distances desired by 'quality_aux_1' piece by piece */
+quality_aux_2(Row, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
 	X >= 1,
 	(
 		(
-			nth1(X, Line, Piece),
+			nth1(X, Row, Piece),
 			X_distance is Node_x - X,
 			Y_distance is Node_y - Y,
 			Abs_X_distance is abs(X_distance),
@@ -562,20 +566,22 @@ quality_aux_2(Line, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
 			Temp_value2 is Abs_X_distance + Abs_Y_distance
 		);
 		(
-			\+ nth1(X, Line, Piece),
+			\+ nth1(X, Row, Piece),
 			Temp_value2 = 0
 		)
 	),
 	X2 is X - 1,
 	Temp_value3 is Temp_value + Temp_value2,
-	quality_aux_2(Line, Piece, X2, Y, Node_x, Node_y, Temp_value3, Value).
-quality_aux_2(_Line, _Piece, 0, _Y, _Node_x, _Node_y, Value, Value).
+	quality_aux_2(Row, Piece, X2, Y, Node_x, Node_y, Temp_value3, Value).
+quality_aux_2(_Row, _Piece, 0, _Y, _Node_x, _Node_y, Value, Value).
 
+/* Verify if the Board inside 'state' is completly played */
 verify_game_over :-
 	state(_Player, Board),
 	get_piece(Board, X, Y, Node),
 	verify_blocked(Board, Node, X, Y).
 
+/* Verify if a Node is surround by enemy Units */
 verify_blocked(Board, Node, X, Y) :-
 	((Node = n1, Enemy_unit = u2); (Node = n2, Enemy_unit = u1)),
 	verify_blocked_left(Board, Enemy_unit, X, Y),
@@ -583,33 +589,38 @@ verify_blocked(Board, Node, X, Y) :-
 	verify_blocked_up(Board, Enemy_unit, X, Y),
 	verify_blocked_down(Board, Enemy_unit, X, Y).
 
+/* Verify if one side of the [X,Y] piece is blocked by an Enemy_unit */
 /* If 'X2' or 'Y2' out of borders 'yes' will be returned, as desired */
-verify_blocked_left(Board, Enemy_unit, X, Y) :- X2 is X - 1, (X2 < 1; (nth1(Y, Board, Line), nth1(X2, Line, Enemy_unit))).
-verify_blocked_right(Board, Enemy_unit, X, Y) :- X2 is X + 1, (nth1(Y, Board, Line), length(Line, Length_x), (X2 > Length_x; nth1(X2, Line, Enemy_unit))).
-verify_blocked_up(Board, Enemy_unit, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Line), nth1(X, Line, Enemy_unit))).
-verify_blocked_down(Board, Enemy_unit, X, Y) :- Y2 is Y + 1, length(Board, Length_y), (Y2 > Length_y; (nth1(Y2, Board, Line), nth1(X, Line, Enemy_unit))).
+verify_blocked_left(Board, Enemy_unit, X, Y) :- X2 is X - 1, (X2 < 1; (nth1(Y, Board, Row), nth1(X2, Row, Enemy_unit))).
+verify_blocked_right(Board, Enemy_unit, X, Y) :- X2 is X + 1, (nth1(Y, Board, Row), length(Row, Length_x), (X2 > Length_x; nth1(X2, Row, Enemy_unit))).
+verify_blocked_up(Board, Enemy_unit, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Row), nth1(X, Row, Enemy_unit))).
+verify_blocked_down(Board, Enemy_unit, X, Y) :- Y2 is Y + 1, length(Board, Length_y), (Y2 > Length_y; (nth1(Y2, Board, Row), nth1(X, Row, Enemy_unit))).
 
+/* Find the other player */
 next_player(Player, Next) :- player(Player), player(Next), Player \= Next.
 
+/* Show the winner */
 show_results(Winner) :- format('~NWinner: ~s~N', Winner).
 
+/* Change a piece of the Board, remaking it row by row */
 /* If 'Y' is invalid, the same list will be returned */
-set_piece([Line | Other_lines], X, Y, New_piece, [Line | Other_new_lines]) :-
+set_piece([Row | Other_rows], X, Y, New_piece, [Row | Other_new_rows]) :-
 	Y =\= 1,
 	Next_Y is Y - 1,
-	set_piece(Other_lines, X, Next_Y, New_piece, Other_new_lines).
-set_piece([Line | Other_lines], X, 1, New_piece, [New_line | Other_new_lines]) :-
-	set_cell(X, New_piece, Line, New_line),
+	set_piece(Other_rows, X, Next_Y, New_piece, Other_new_rows).
+set_piece([Row | Other_rows], X, 1, New_piece, [New_row | Other_new_rows]) :-
+	set_cell(X, New_piece, Row, New_row),
 	Next_Y is 0,
-	set_piece(Other_lines, X, Next_Y, New_piece, Other_new_lines).
+	set_piece(Other_rows, X, Next_Y, New_piece, Other_new_rows).
 set_piece([], _X, _Y, _New_piece, []).
 
+/* Change a piece of the Row, remaking it cell by cell */
 /* If 'X' is invalid, the same list will be returned */
-set_cell(X, New_piece, [Piece | Rest_line], [Piece | Rest_new_line]) :-
+set_cell(X, New_piece, [Piece | Rest_row], [Piece | Rest_new_row]) :-
 	X =\= 1,
 	Next_X is X - 1,
-	set_cell(Next_X, New_piece, Rest_line, Rest_new_line).
-set_cell(1, New_piece, [_Piece | Rest_line], [New_piece | Rest_new_line]) :-
+	set_cell(Next_X, New_piece, Rest_row, Rest_new_row).
+set_cell(1, New_piece, [_Piece | Rest_row], [New_piece | Rest_new_row]) :-
 	Next_X is 0,
-	set_cell(Next_X, New_piece, Rest_line, Rest_new_line).
+	set_cell(Next_X, New_piece, Rest_row, Rest_new_row).
 set_cell(_X, _New_piece, [], []).
