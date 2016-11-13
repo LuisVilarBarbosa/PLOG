@@ -20,7 +20,7 @@ T -> player 2 unit -> u2
 player(p1).
 player(p2).
 
-/* Board */
+/* Boards */
 board([
 	[' ', ' ', u1, u1, n1, u1, u1, ' ', ' '],
 	[' ',  sp, sp, u1, u1, u1, sp,  sp, ' '],
@@ -31,6 +31,24 @@ board([
 	[ sp,  sp, sp, sp, u2, sp, sp,  sp,  sp],
 	[' ',  sp, sp, u2, u2, u2, sp,  sp, ' '],
 	[' ', ' ', u2, u2, n2, u2, u2, ' ', ' ']
+	]).
+
+small_board([
+	[u1, u1, n1, u1, u1],
+	[sp, u1, u1, u1, sp],
+	[sp, sp, u1, sp, sp],
+	[sp, sp, u2, sp, sp],
+	[sp, u2, u2, u2, sp],
+	[u2, u2, n2, u2, u2]
+	]).
+
+bad_board([
+	[' ', ' ', u1, u1, n1, u1, u1],
+	[' ',  sp, sp, u1, u1, u1, sp],
+	[ sp,  sp, sp, sp, u1, sp],
+	[ sp,  sp, sp, sp, u2, sp, sp],
+	[' ',  sp, sp, u2, u2, u2, sp],
+	[' ', ' ', u2, u2, n2, u2, u2]
 	]).
 
 intermediate_board([
@@ -182,7 +200,8 @@ game(Type, Mode) :-
 	check_game_type(Type),
 	check_game_mode(Mode),
 	board(Board),	
-	verify_board_dimensions(Board),	/* We will assume that the board is squared */
+	(verify_board_dimensions(Board, Length);
+	format('Invalid board dimensions.~N', []), fail),
 	retract(state(_, _)),
 	assert(state(p1, Board)),	/* the youngest player begins the game */
 	repeat,
@@ -210,21 +229,12 @@ check_game_type(Type) :-
 	),
 	!.
 
-/* Check if the Board is squared */
-verify_board_dimensions(Board) :-
-	length(Board, Length_y),
-	(
-		verify_board_dimensions_aux(Board, Length_y);
-		(write('Invalid board dimensions.\n'), fail)
-	),
-	!.
-
-/* Verify if a Row has a given length */
-verify_board_dimensions_aux([Row | Other_rows], Length) :-
+/* Verify if all Rows have the same length */
+verify_board_dimensions([Row | Other_rows], Length) :-
 	length(Row, Length_x),
 	Length = Length_x,
-	verify_board_dimensions_aux(Other_rows, Length).
-verify_board_dimensions_aux([], _Length).
+	verify_board_dimensions(Other_rows, Length).
+verify_board_dimensions([], _Length).
 
 /* Play computer-computer (one set of moves) */
 play(cc, Mode) :-
