@@ -199,7 +199,7 @@ display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 game(Type, Mode) :-
 	check_game_type(Type),
 	check_game_mode(Mode),
-	bad_board(Board),	
+	board(Board),	
 	(verify_board_dimensions(Board);
 	format('Invalid board dimensions.~N', []), fail),
 	retract(state(_, _)),
@@ -236,8 +236,7 @@ verify_board_dimensions([Row | Other_rows]) :-
 
 /* Verify if the all the rows have the same dimension of the first row */
 verify_board_dimensions_aux([Row | Other_rows], Length) :-
-	length(Row, Length_x),
-	Length = Length_x,
+	length(Row, Length),
 	verify_board_dimensions_aux(Other_rows, Length).
 verify_board_dimensions_aux([], _Length).
 
@@ -510,19 +509,16 @@ verify_enemy_unit_player(Board, Player, Enemy_x, Enemy_y) :-
 burst_move(Player, Mode, Board, Best) :-
 	findall(Aux_coords, find_player_moveable_pieces(Board, Player, Aux_coords), Possible_coords),
 	(
-		(Possible_coords = [], Best = Board);	/* low probability */
+		random_member([X, Y], Possible_coords),
+		get_piece(Board, X, Y, Piece_to_move),
+		best_move(Player, Mode, Board, X, Y, New_board),
 		(
-			random_member([X, Y], Possible_coords),
-			get_piece(Board, X, Y, Piece_to_move),
-			best_move(Player, Mode, Board, X, Y, New_board),
+			(New_board = [], Best = Board);	/* it is not possible to create a better Board */
 			(
-				(New_board = [], Best = Board);	/* it is not possible to create a better Board */
-				(
-					(Piece_to_move = n1; Piece_to_move = n2),
-					Best = New_board
-				);
-				burst_move(Player, Mode, New_board, Best)
-			)
+				(Piece_to_move = n1; Piece_to_move = n2),
+				Best = New_board
+			);
+			burst_move(Player, Mode, New_board, Best)
 		)
 	),
 	!.
@@ -588,23 +584,25 @@ select_best_aux(_Player, [], [], 100000000000000).	/* dangerous value (limiting)
 
 /* Calculate the sum of the distances of all the Units of the Player regarding the enemy Node */
 quality(Board, Player, Value) :-
+	global_check_signal(Board, Player, Num_signal),	/* number of Player Units with signal */
 	length(Board, Length),
 	((Player = p1, Enemy_node = n2, My_unit = u1); (Player = p2, Enemy_node = n1, My_unit = u2)),
 	get_piece(Board, Node_x, Node_y, Enemy_node),
-	quality_aux_1(Board, My_unit, Length, Length, Node_x, Node_y, 0, Value).
+	quality_aux_1(Board, My_unit, Length, Length, Node_x, Node_y, 0, Sum_distances),
+	Value is Sum_distances / Num_signal.
 
 /* Calculate the distances desired by 'quality' row by row */
-quality_aux_1(Board, Piece, Max_x, Y, Node_x, Node_y, Temp_value, Value) :-
+quality_aux_1(Board, Piece, Max_x, Y, Node_x, Node_y, Temp_distance, Sum_distances) :-
 	Y >= 1,
 	nth1(Y, Board, Row),
-	quality_aux_2(Row, Piece, Max_x, Y, Node_x, Node_y, 0, Temp_value2),
+	quality_aux_2(Row, Piece, Max_x, Y, Node_x, Node_y, 0, Temp_distance2),
 	Y2 is Y - 1,
-	Temp_value3 is Temp_value + Temp_value2,
-	quality_aux_1(Board, Piece, Max_x, Y2,  Node_x, Node_y, Temp_value3, Value).
-quality_aux_1(_Board, _Piece, _Max_x, 0, _Node_x, _Node_y, Value, Value).
+	Temp_distance3 is Temp_distance + Temp_distance2,
+	quality_aux_1(Board, Piece, Max_x, Y2,  Node_x, Node_y, Temp_distance3, Sum_distances).
+quality_aux_1(_Board, _Piece, _Max_x, 0, _Node_x, _Node_y, Sum_distances, Sum_distances).
 
 /* Calculate the distances desired by 'quality_aux_1' piece by piece */
-quality_aux_2(Row, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
+quality_aux_2(Row, Piece, X, Y, Node_x, Node_y, Temp_distance, Sum_distances) :-
 	X >= 1,
 	(
 		(
@@ -613,17 +611,42 @@ quality_aux_2(Row, Piece, X, Y, Node_x, Node_y, Temp_value, Value) :-
 			Y_distance is Node_y - Y,
 			Abs_X_distance is abs(X_distance),
 			Abs_Y_distance is abs(Y_distance),
-			Temp_value2 is Abs_X_distance + Abs_Y_distance
+			Temp_distance2 is Abs_X_distance + Abs_Y_distance
 		);
 		(
 			\+ nth1(X, Row, Piece),
-			Temp_value2 = 0
+			Temp_distance2 = 0
 		)
 	),
 	X2 is X - 1,
-	Temp_value3 is Temp_value + Temp_value2,
-	quality_aux_2(Row, Piece, X2, Y, Node_x, Node_y, Temp_value3, Value).
-quality_aux_2(_Row, _Piece, 0, _Y, _Node_x, _Node_y, Value, Value).
+	Temp_distance3 is Temp_distance + Temp_distance2,
+	quality_aux_2(Row, Piece, X2, Y, Node_x, Node_y, Temp_distance3, Sum_distances).
+quality_aux_2(_Row, _Piece, 0, _Y, _Node_x, _Node_y, Sum_distances, Sum_distances).
+
+/* Calculate the number of units of the Player with signal */
+global_check_signal(Board, Player, Quantity) :-
+	length(Board, Length_y),
+	global_check_signal_aux_1(Board, Player, Length_y, 0, Quantity),
+	!.
+
+/* Calculate the number of units of the Player with signal (row by row) */
+global_check_signal_aux_1(Board, Player, Y, Temp_quantity, Quantity) :-
+	Y >= 1,
+	nth1(Y, Board, Row),
+	length(Row, Length_x),
+	global_check_signal_aux_2(Board, Player, Length_x, Y, 0, Temp_quantity2),
+	Temp_quantity3 is Temp_quantity + Temp_quantity2,
+	Y2 is Y - 1,
+	global_check_signal_aux_1(Board, Player, Y2, Temp_quantity3, Quantity).
+global_check_signal_aux_1(_, _, 0, Quantity, Quantity).
+
+/* Calculate the number of units of the Player with signal (cell by cell) */
+global_check_signal_aux_2(Board, Player, X, Y, Temp_quantity, Quantity) :-
+	X >= 1,
+	((check_signal(Board, Player, X, Y), Temp_quantity2 is Temp_quantity + 1); (Temp_quantity2 is Temp_quantity)),
+	X2 is X - 1,
+	global_check_signal_aux_2(Board, Player, X2, Y, Temp_quantity2, Quantity).
+global_check_signal_aux_2(_, _, 0, _, Quantity, Quantity).
 
 /* Verify if the Board inside 'state' is completly played */
 verify_game_over :-
