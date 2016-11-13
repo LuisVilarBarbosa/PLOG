@@ -210,7 +210,7 @@ game(Mode, Level) :-
 	check_game_level(Level),
 	board(Board),	
 	(verify_board_dimensions(Board);
-	format('Invalid board dimensions.~N', []), fail),
+	(format('Invalid board dimensions.~N', []), fail)),
 	retract(state(_, _)),
 	assert(state(p1, Board)),	/* the youngest player begins the game */
 	repeat,
