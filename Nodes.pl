@@ -80,9 +80,10 @@ state(_Player, _Board).
 
 /* Display */
 display_board(Board) :-
-	length(Board, Length),	/* it is considered less than 10, otherwise the indexes will be wrongly placed */
+	nth1(1, Board, Row),
+	length(Row, Length_x),
 	write('  '),
-	display_board_cols_indexes(1, Length),
+	display_board_cols_indexes(1, Length_x),
 	nl,
 	display_board_rows(Board, Board, 1),
 	nl,
@@ -98,7 +99,8 @@ display_board_cols_indexes(Index, Max_index) :- Index > Max_index.
 display_board_rows([Row | []], _Board, Index) :-
 	display_board_middle_bottom_row(Row),
 	nl,
-	format('~d ', [Index]),
+	(Index =< 9, format('~d ', [Index]);
+	(Index > 9,	format('~d', [Index]))),
 	display_board_row_pieces(Row).
 display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board up half */
 	length(Board, All_board_length),
@@ -106,7 +108,8 @@ display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board up half
 	Left_board_length1 is Left_board_length + 1,
 	Half_board_length is All_board_length >> 1,		/* integer division by 2 */
 	Left_board_length1 > Half_board_length,
-	format('~d ', [Index]),
+	(Index < 10, format('~d ', [Index]);
+	(Index >= 10, format('~d', [Index]))),
 	display_board_row_pieces(Row), 
 	nl, 
 	write('  '),
@@ -120,7 +123,8 @@ display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board middle 
 	Left_board_length1 is Left_board_length + 1,
 	Half_board_length is All_board_length >> 1,		/* integer division by 2 */
 	Left_board_length1 == Half_board_length,
-	format('~d ', [Index]),
+	(Index < 10, format('~d ', [Index]);
+	(Index >= 10, format('~d', [Index]))),
 	display_board_row_pieces(Row),
 	nl,
 	write('  '),
@@ -134,7 +138,8 @@ display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board bottom 
 	Left_board_length1 < Half_board_length,
 	display_board_middle_bottom_row(Row),
 	nl, 
-	format('~d ', [Index]),
+	(Index < 10, format('~d ', [Index]);
+	(Index >= 10, format('~d', [Index]))),
 	display_board_row_pieces(Row), 
 	nl,
 	write('  '),
@@ -199,7 +204,7 @@ display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 game(Type, Mode) :-
 	check_game_type(Type),
 	check_game_mode(Mode),
-	bad_board(Board),	
+	board(Board),	
 	(verify_board_dimensions(Board);
 	format('Invalid board dimensions.~N', []), fail),
 	retract(state(_, _)),
@@ -232,6 +237,7 @@ check_game_type(Type) :-
 /* Verify if all Rows have the same length */
 verify_board_dimensions([Row | Other_rows]) :-
 	length(Row, Length),
+	Length > 1,
 	verify_board_dimensions_aux(Other_rows, Length).
 
 /* Verify if the all the rows have the same dimension of the first row */
@@ -492,9 +498,11 @@ get_piece(Board, X, Y, Piece) :-
 verify_inside_borders(Board, X, Y) :-
 	X >= 1,
 	Y >= 1,
-	length(Board, Length),
-	Y =< Length,
-	X =< Length.
+	length(Board, Length_y),
+	Y =< Length_y,
+	nth1(1, Board, Row),
+	length(Row, Length_x),
+	X =< Length_x.
 
 /* Check if the Piece belongs to the Player (Unit or Node) */
 verify_piece_player(Board, Player, Piece_x, Piece_y, Piece) :-
@@ -588,10 +596,12 @@ select_best_aux(_Player, [], [], 100000000000000).	/* dangerous value (limiting)
 
 /* Calculate the sum of the distances of all the Units of the Player regarding the enemy Node */
 quality(Board, Player, Value) :-
-	length(Board, Length),
+	length(Board, Length_y),
+	nth1(1, Board, Row),
+	length(Row, Length_x),
 	((Player = p1, Enemy_node = n2, My_unit = u1); (Player = p2, Enemy_node = n1, My_unit = u2)),
 	get_piece(Board, Node_x, Node_y, Enemy_node),
-	quality_aux_1(Board, My_unit, Length, Length, Node_x, Node_y, 0, Value).
+	quality_aux_1(Board, My_unit, Length_x, Length_y, Node_x, Node_y, 0, Value).
 
 /* Calculate the distances desired by 'quality' row by row */
 quality_aux_1(Board, Piece, Max_x, Y, Node_x, Node_y, Temp_value, Value) :-
