@@ -97,13 +97,15 @@ display_board(Board) :-
 	nl,
 	nl.
 
+/* Display the columns indexes */
 display_board_cols_indexes(Index, Max_index) :-
 	Index =< Max_index,
 	format('~d ', [Index]),
 	Index2 is Index + 1,
 	display_board_cols_indexes(Index2, Max_index).
 display_board_cols_indexes(Index, Max_index) :- Index > Max_index.
-	
+
+/* Display of the board's rows */
 display_board_rows([Row | []], _Board, Index) :-
 	display_board_middle_bottom_row(Row),
 	nl,
@@ -150,13 +152,15 @@ display_board_rows([Row | Other_rows], Board, Index) :-	/* Display board bottom 
 	Index2 is Index + 1,
 	display_board_rows(Other_rows, Board, Index2).
 
+/* Translates */
 translate(sp, 'O').
 translate(n1, 'A').
 translate(u1, 'B').
 translate(n2, 'S').
 translate(u2, 'T').
 translate(X, X).
-	
+
+/* Display the rows of the board with pieces */
 display_board_row_pieces([Piece | []]) :-
 	translate(Piece, TPiece),
 	write(TPiece).
@@ -172,6 +176,7 @@ display_board_row_pieces([Piece | Other_pieces]) :-
 	write('-'),
 	display_board_row_pieces(Other_pieces).
 
+/* Display the rows of the board without pieces */
 display_board_middle_up_row([_Piece | []]) :-
 	write('|').
 display_board_middle_up_row([Piece | [' ' | _]]) :-
@@ -208,7 +213,7 @@ display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 game(Mode, Level) :-
 	check_game_mode(Mode),
 	check_game_level(Level),
-	board(Board),	
+	board(Board), /* defines the board to be played */
 	(verify_board_dimensions(Board);
 	(format('Invalid board dimensions.~N', []), fail)),
 	retract(state(_, _)),
@@ -222,7 +227,7 @@ game(Mode, Level) :-
 	next_player(Current_player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
 	show_results(Winner).
 
-/* Checks if the Mode is valid */
+/* Checks if the Mode is valid, cc, ch or hh */
 check_game_mode(Mode) :-
 	(
 		(Mode = cc; Mode = ch; Mode = hh);
@@ -230,7 +235,7 @@ check_game_mode(Mode) :-
 	),
 	!.
 
-/* Checks if the Level is valid */
+/* Checks if the Level is valid, easy or hard */
 check_game_level(Level) :-
 	(
 		(Level = easy; Level = hard);
@@ -284,7 +289,6 @@ play(ch, Level) :-
 	state(p1, _Board),
 	play(cc, Level),
 	!.
-
 play(ch, Level) :-
 	state(p2, _Board),
 	play(hh, Level),
