@@ -41,6 +41,14 @@ small_board([
 	[sp, u2, u2, u2, sp],
 	[u2, u2, n2, u2, u2]
 	]).
+	
+jump_board([
+	[n1],
+	[u1],
+	[u2],
+	[sp],
+	[n2]
+	]).
 
 bad_board([
 	[' ', ' ', u1, u1, n1, u1, u1],
@@ -203,6 +211,7 @@ game(Mode, Level) :-
 	board(Board),	
 	(verify_board_dimensions(Board);
 	format('Invalid board dimensions.~N', []), fail),
+	write('\33\[2J'),
 	retract(state(_, _)),
 	assert(state(p1, Board)),	/* the youngest player begins the game */
 	repeat,
@@ -233,7 +242,7 @@ check_game_level(Level) :-
 /* Verify if all Rows have the same length */
 verify_board_dimensions([Row | Other_rows]) :-
 	length(Row, Length),
-	Length > 1,
+	(Length >= 1; (length(Other_rows, Length2), Length2 > 1)),
 	verify_board_dimensions_aux(Other_rows, Length).
 
 /* Verify if the all the rows have the same dimension of the first row */
@@ -261,8 +270,10 @@ play(hh, _Level) :-
 		read(X),
 		write('Y: '),
 		read(Y),
+		verify_inside_borders(Board, X, Y),
 		write('Option: '),
 		read(Choice),
+		Choice > 0, Choice < 9,
 		state(Player, Old_board),
 		get_piece(Old_board, X, Y, Piece),
 		play_hh_iteration(X, Y, Choice),
@@ -287,15 +298,21 @@ play(ch, Level) :-
 play_hh_iteration(X, Y, Choice) :-
 	retract(state(Player, Actual_board)),
 	(
-		(Choice = 1, rule(move_up, Player, X, Y, Actual_board, New_board));
-		(Choice = 2, rule(move_down, Player, X, Y, Actual_board, New_board));
-		(Choice = 3, rule(move_left, Player, X, Y, Actual_board, New_board));
-		(Choice = 4, rule(move_right, Player, X, Y, Actual_board, New_board));
-		(Choice = 5, rule(move_enemy_unit_up, Player, X, Y, Actual_board, New_board));
-		(Choice = 6, rule(move_enemy_unit_down, Player, X, Y, Actual_board, New_board));
-		(Choice = 7, rule(move_enemy_unit_left, Player, X, Y, Actual_board, New_board));
-		(Choice = 8, rule(move_enemy_unit_right, Player, X, Y, Actual_board, New_board));
-		(New_board = Actual_board, write('Unable to apply the specified rule.\n'))
+		(format('Chose (~d,~d) to move ', [X,Y]),
+		(
+		(Choice = 1, rule(move_up, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y - 1);
+		(Choice = 2, rule(move_down, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y + 1);
+		(Choice = 3, rule(move_left, Player, X, Y, Actual_board, New_board), X2 is X - 1, Y2 is Y);
+		(Choice = 4, rule(move_right, Player, X, Y, Actual_board, New_board), X2 is X + 1, Y2 is Y);
+		(Choice = 5, rule(jump_up_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y - 2);
+		(Choice = 6, rule(jump_down_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y + 2);
+		(Choice = 7, rule(jump_left_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X - 2, Y2 is Y);
+		(Choice = 8, rule(jump_right_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X + 2, Y2 is Y)
+		),
+		(format('to (~d,~d)', [X2,Y2])),
+		nl,
+		nl);
+		(New_board = Actual_board, write('but was unable to apply the specified rule\nTry again\n'),nl)
 	),
 	display_board(New_board),
 	assert(state(Player, New_board)),
