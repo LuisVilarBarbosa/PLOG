@@ -269,11 +269,13 @@ play(hh, _Mode) :-
 /* Play computer-human (one set of moves for each) */
 play(ch, Mode) :-
 	state(p1, _Board),
-	play(cc, Mode).
+	play(cc, Mode),
+	!.
 
 play(ch, Mode) :-
 	state(p2, _Board),
-	play(hh, Mode).
+	play(hh, Mode),
+	!.
 
 /* Play human-human (just one move) */
 play_hh_iteration(X, Y, Choice) :-
