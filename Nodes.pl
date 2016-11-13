@@ -211,7 +211,6 @@ game(Mode, Level) :-
 	board(Board),	
 	(verify_board_dimensions(Board);
 	format('Invalid board dimensions.~N', []), fail),
-	write('\33\[2J'),
 	retract(state(_, _)),
 	assert(state(p1, Board)),	/* the youngest player begins the game */
 	repeat,
@@ -242,7 +241,6 @@ check_game_level(Level) :-
 /* Verify if all Rows have the same length */
 verify_board_dimensions([Row | Other_rows]) :-
 	length(Row, Length),
-	(Length >= 1; (length(Other_rows, Length2), Length2 > 1)),
 	verify_board_dimensions_aux(Other_rows, Length).
 
 /* Verify if the all the rows have the same dimension of the first row */
@@ -270,10 +268,8 @@ play(hh, _Level) :-
 		read(X),
 		write('Y: '),
 		read(Y),
-		verify_inside_borders(Board, X, Y),
 		write('Option: '),
 		read(Choice),
-		Choice > 0, Choice < 9,
 		state(Player, Old_board),
 		get_piece(Old_board, X, Y, Piece),
 		play_hh_iteration(X, Y, Choice),
@@ -297,22 +293,22 @@ play(ch, Level) :-
 /* Play human-human (just one move) */
 play_hh_iteration(X, Y, Choice) :-
 	retract(state(Player, Actual_board)),
+	format('Chose (~d,~d) to move ', [X,Y]),
 	(
-		(format('Chose (~d,~d) to move ', [X,Y]),
 		(
-		(Choice = 1, rule(move_up, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y - 1);
-		(Choice = 2, rule(move_down, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y + 1);
-		(Choice = 3, rule(move_left, Player, X, Y, Actual_board, New_board), X2 is X - 1, Y2 is Y);
-		(Choice = 4, rule(move_right, Player, X, Y, Actual_board, New_board), X2 is X + 1, Y2 is Y);
-		(Choice = 5, rule(jump_up_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y - 2);
-		(Choice = 6, rule(jump_down_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y + 2);
-		(Choice = 7, rule(jump_left_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X - 2, Y2 is Y);
-		(Choice = 8, rule(jump_right_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X + 2, Y2 is Y)
-		),
-		(format('to (~d,~d)', [X2,Y2])),
-		nl,
-		nl);
-		(New_board = Actual_board, write('but was unable to apply the specified rule\nTry again\n'),nl)
+			(
+				(Choice = 1, rule(move_up, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y - 1);
+				(Choice = 2, rule(move_down, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y + 1);
+				(Choice = 3, rule(move_left, Player, X, Y, Actual_board, New_board), X2 is X - 1, Y2 is Y);
+				(Choice = 4, rule(move_right, Player, X, Y, Actual_board, New_board), X2 is X + 1, Y2 is Y);
+				(Choice = 5, rule(jump_up_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y - 2);
+				(Choice = 6, rule(jump_down_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X, Y2 is Y + 2);
+				(Choice = 7, rule(jump_left_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X - 2, Y2 is Y);
+				(Choice = 8, rule(jump_right_enemy_unit, Player, X, Y, Actual_board, New_board), X2 is X + 2, Y2 is Y)
+			),
+			format('to (~d,~d).~n~n', [X2,Y2])
+		);
+		(New_board = Actual_board, write('but was unable to apply the specified rule.\nTry again.\n\n'))
 	),
 	display_board(New_board),
 	assert(state(Player, New_board)),
@@ -587,21 +583,22 @@ best_move(Player, Level, Board, Piece_x, Piece_y, Best) :-
 
 /* Select the best board of those presented */
 select_best(Player, Possible_boards, Best) :-
-	select_best_aux(Player, Possible_boards, Best, _Best_value).
+	select_best_aux(Player, Possible_boards, [], 100000000000000, Best, _Best_value).	/* dangerous value (upper bound) */
 
 /* Verify if the passed board is better or not than others */
-select_best_aux(Player, [Board | Other_boards], Best_board, Best_value) :-
-	select_best_aux(Player, Other_boards, Best_board2, Best_value2),
+select_best_aux(Player, [Board | Other_boards], Temp_best_board, Temp_best_value, Best_board, Best_value) :-
 	quality(Board, Player, Value),
 	(
-		(Value =< Best_value2,
-		Best_value is Value,
-		Best_board = Board);
-		(Value > Best_value2,
-		Best_value is Best_value2,
-		Best_board = Best_board2)
-	).
-select_best_aux(_Player, [], [], 100000000000000).	/* dangerous value (limiting) */
+		(Value =< Temp_best_value,
+		Temp_best_value2 is Value,
+		Temp_best_board2 = Board);
+		(Value > Temp_best_value,
+		Temp_best_value2 is Temp_best_value,
+		Temp_best_board2 = Temp_best_board)
+	),
+	select_best_aux(Player, Other_boards, Temp_best_board2, Temp_best_value2, Best_board, Best_value).
+select_best_aux(_, [], Best_board, _, Best_board, _).
+
 
 /* Calculate the sum of the distances of all the Units of the Player regarding the enemy Node */
 quality(Board, Player, Value) :-
