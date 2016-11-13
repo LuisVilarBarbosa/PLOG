@@ -197,9 +197,9 @@ display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 	display_board_middle_bottom_row(Other_pieces).
 
 /* Game logic */
-game(Type, Mode) :-
-	check_game_type(Type),
+game(Mode, Level) :-
 	check_game_mode(Mode),
+	check_game_level(Level),
 	board(Board),	
 	(verify_board_dimensions(Board);
 	format('Invalid board dimensions.~N', []), fail),
@@ -208,25 +208,25 @@ game(Type, Mode) :-
 	repeat,
 		state(Player, _),
 		format('Player: ~s~N', Player),
-		play(Type, Mode),
+		play(Mode, Level),
 		verify_game_over,
 	state(Current_player, _),
 	next_player(Current_player, Winner),	/* 'play' changed the current player to the next, it is necessary to recover the prior player */
 	show_results(Winner).
-	
+
 /* Checks if the Mode is valid */
 check_game_mode(Mode) :-
 	(
-		(Mode = easy; Mode = hard);
-		(write('Wrong game mode. Please check if you typed correctly the Mode of the Game.\nIt can be: easy or hard.\n'), fail)
+		(Mode = cc; Mode = ch; Mode = hh);
+		(write('Wrong game mode. Please check if you typed correctly the Mode of the Game.\nIt can be: cc, ch or hh.\n'), fail)
 	),
 	!.
 
-/* Checks if the Type is valid */
-check_game_type(Type) :-
+/* Checks if the Level is valid */
+check_game_level(Level) :-
 	(
-		(Type = cc; Type = ch; Type = hh);
-		(write('Wrong game type. Please check if you typed correctly the Type of the Game.\nIt can be: cc, ch or hh.\n'), fail)
+		(Level = easy; Level = hard);
+		(write('Wrong game level. Please check if you typed correctly the Level of the Game.\nIt can be: easy or hard.\n'), fail)
 	),
 	!.
 
@@ -243,16 +243,16 @@ verify_board_dimensions_aux([Row | Other_rows], Length) :-
 verify_board_dimensions_aux([], _Length).
 
 /* Play computer-computer (one set of moves) */
-play(cc, Mode) :-
+play(cc, Level) :-
 	retract(state(Player, Actual_board)),
-	burst_move(Player, Mode, Actual_board, Best_board),
+	burst_move(Player, Level, Actual_board, Best_board),
 	display_board(Best_board),
 	next_player(Player, Next),
 	assert(state(Next, Best_board)),
 	!.
 
 /* Play human-human (one set of moves) */
-play(hh, _Mode) :-
+play(hh, _Level) :-
 	state(_, Board),
 	display_board(Board),
 	format('Possible moves:~n1-move up~n2-move down~n3-move left~n4-move right~n5-jump enemy unit up~n6-jump enemy unit down~n7-jump enemy unit left~n8-jump enemy unit right~nWhich piece do you want to move?~n', []),
@@ -273,14 +273,14 @@ play(hh, _Mode) :-
 	!.
 
 /* Play computer-human (one set of moves for each) */
-play(ch, Mode) :-
+play(ch, Level) :-
 	state(p1, _Board),
-	play(cc, Mode),
+	play(cc, Level),
 	!.
 
-play(ch, Mode) :-
+play(ch, Level) :-
 	state(p2, _Board),
-	play(hh, Mode),
+	play(hh, Level),
 	!.
 
 /* Play human-human (just one move) */
@@ -510,19 +510,19 @@ verify_enemy_unit_player(Board, Player, Enemy_x, Enemy_y) :-
 	((Player = p1, Piece = u2); (Player = p2, Piece = u1)).	
 
 /* Calculate a set of possible moves (greedy at each move) */
-burst_move(Player, Mode, Board, Best) :-
+burst_move(Player, Level, Board, Best) :-
 	findall(Aux_coords, find_player_moveable_pieces(Board, Player, Aux_coords), Possible_coords),
 	(
 		random_member([X, Y], Possible_coords),
 		get_piece(Board, X, Y, Piece_to_move),
-		best_move(Player, Mode, Board, X, Y, New_board),
+		best_move(Player, Level, Board, X, Y, New_board),
 		(
 			(New_board = [], Best = Board);	/* it is not possible to create a better Board */
 			(
 				(Piece_to_move = n1; Piece_to_move = n2),
 				Best = New_board
 			);
-			burst_move(Player, Mode, New_board, Best)
+			burst_move(Player, Level, New_board, Best)
 		)
 	),
 	!.
@@ -548,11 +548,11 @@ verify_not_blocked_up(Board, X, Y) :- Y2 is Y - 1, nth1(Y2, Board, Row), nth1(X,
 verify_not_blocked_down(Board, X, Y) :- Y2 is Y + 1, nth1(Y2, Board, Row), nth1(X, Row, sp).
 
 /* Calculate the best move to apply to a specific piece */
-best_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
+best_move(Player, Level, Board, Piece_x, Piece_y, Best) :-
 	findall(Aux_board, (rule(_Move, Player, Piece_x, Piece_y, Board, Aux_board)), Possible_boards),
 	(
 		(
-			Mode = easy,
+			Level = easy,
 			(
 				select_best(Player, Possible_boards, Real_best),	/* 'select_best' makes Real_best = [], if Possible_boards = [] */
 				(Possible_boards = [], Best = Real_best);	/* Real_best = [] */
@@ -565,7 +565,7 @@ best_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
 				)
 			)
 		);
-		(Mode = hard, select_best(Player, Possible_boards, Best))
+		(Level = hard, select_best(Player, Possible_boards, Best))
 	).
 
 /* Select the best board of those presented */
