@@ -501,24 +501,30 @@ verify_enemy_unit_player(Board, Player, Enemy_x, Enemy_y) :-
 
 /* Calculate a set of possible moves (greedy at each move) */
 burst_move(Player, Mode, Board, Best) :-
-	findall(Aux_coords, find_player_pieces(Board, Player, Aux_coords), Possible_coords),
-	random_member([X, Y], Possible_coords),
-	get_piece(Board, X, Y, Piece_to_move),
-	best_move(Player, Mode, Board, X, Y, New_board),
+	findall(Aux_coords, find_player_moveable_pieces(Board, Player, Aux_coords), Possible_coords),
 	(
-		(New_board = [], Best = Board);	/* it is not possible to create a better Board */
+		(Possible_coords = [], Best = Board);	/* low probability */
 		(
-			(Piece_to_move = n1; Piece_to_move = n2),
-			Best = New_board
-		);
-		burst_move(Player, Mode, New_board, Best)
+			random_member([X, Y], Possible_coords),
+			get_piece(Board, X, Y, Piece_to_move),
+			best_move(Player, Mode, Board, X, Y, New_board),
+			(
+				(New_board = [], Best = Board);	/* it is not possible to create a better Board */
+				(
+					(Piece_to_move = n1; Piece_to_move = n2),
+					Best = New_board
+				);
+				burst_move(Player, Mode, New_board, Best)
+			)
+		)
 	),
 	!.
 
 /* Find the position of the Player pieces (Units and Nodes) */
-find_player_pieces(Board, Player, [X, Y]) :-
-	verify_piece_player(Board, Player, X, Y, _Piece),
-	verify_not_blocked(Board, X, Y).
+find_player_moveable_pieces(Board, Player, [X, Y]) :-
+	verify_piece_player(Board, Player, X, Y, Piece),
+	verify_not_blocked(Board, X, Y),
+	((Piece = n1; Piece = n2); check_signal(Board, Player, X, Y)).	/* 'check_signal' does not check the signal for nodes */
 
 /* Verify if the piece in [X, Y] is blocked by 'sp', i.e., it is not blocked */
 verify_not_blocked(Board, X, Y) :-
