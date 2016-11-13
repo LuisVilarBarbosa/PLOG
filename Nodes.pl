@@ -547,17 +547,15 @@ best_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
 		(
 			Mode = easy,
 			(
+				select_best(Player, Possible_boards, Real_best),	/* 'select_best' makes Real_best = [], if Possible_boards = [] */
+				(Possible_boards = [], Best = Real_best);	/* Real_best = [] */
 				(
-					Possible_boards \= [],
-					select_best(Player, Possible_boards, Real_best),	/* 'select_best' makes Best = [], if Possible_boards = [] */
+					Possible_boards \= [],	/* Real_best \= [] */
 					append(La, [Real_best|Lb], Possible_boards),
 					append(La, Lb, New_possible_boards),
-					(
-						(New_possible_boards = [], nth1(1, Possible_boards, Best));	/* Best is really the best */
-						select_best(Player, New_possible_boards, Best)	/* Best is second best */
-					)
-				);
-				Best = []
+					select_best(Player, New_possible_boards, Second_best),
+					((Second_best = [], Best = Real_best); random_member(Best, [Real_best, Second_best]))
+				)
 			)
 		);
 		(Mode = hard, select_best(Player, Possible_boards, Best))
