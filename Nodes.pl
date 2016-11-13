@@ -555,10 +555,10 @@ verify_not_blocked(Board, X, Y) :-
 
 /* Verify if one side of the [X,Y] piece is not blocked by anything (if blocked by 'sp' is free to move) */
 /* If 'X2' or 'Y2' out of borders 'no' will be returned, as desired (different from verify_blocked_*) */
-verify_not_blocked_left(Board, X, Y) :- X2 is X - 1, nth1(Y, Board, Row), nth1(X2, Row, sp).
-verify_not_blocked_right(Board, X, Y) :- X2 is X + 1, nth1(Y, Board, Row), nth1(X2, Row, sp).
-verify_not_blocked_up(Board, X, Y) :- Y2 is Y - 1, nth1(Y2, Board, Row), nth1(X, Row, sp).
-verify_not_blocked_down(Board, X, Y) :- Y2 is Y + 1, nth1(Y2, Board, Row), nth1(X, Row, sp).
+verify_not_blocked_left(Board, X, Y) :- X2 is X - 1, get_piece(Board, X2, Y, sp).
+verify_not_blocked_right(Board, X, Y) :- X2 is X + 1, get_piece(Board, X2, Y, sp).
+verify_not_blocked_up(Board, X, Y) :- Y2 is Y - 1, get_piece(Board, X, Y2, sp).
+verify_not_blocked_down(Board, X, Y) :- Y2 is Y + 1, get_piece(Board, X, Y2, sp).
 
 /* Calculate the best move to apply to a specific piece */
 best_move(Player, Level, Board, Piece_x, Piece_y, Best) :-
