@@ -199,8 +199,8 @@ display_board_middle_bottom_row([_Piece | Other_pieces]) :-
 game(Type, Mode) :-
 	check_game_type(Type),
 	check_game_mode(Mode),
-	board(Board),	
-	(verify_board_dimensions(Board, Length);
+	bad_board(Board),	
+	(verify_board_dimensions(Board);
 	format('Invalid board dimensions.~N', []), fail),
 	retract(state(_, _)),
 	assert(state(p1, Board)),	/* the youngest player begins the game */
@@ -230,11 +230,16 @@ check_game_type(Type) :-
 	!.
 
 /* Verify if all Rows have the same length */
-verify_board_dimensions([Row | Other_rows], Length) :-
+verify_board_dimensions([Row | Other_rows]) :-
+	length(Row, Length),
+	verify_board_dimensions_aux(Other_rows, Length).
+
+/* Verify if the all the rows have the same dimension of the first row */
+verify_board_dimensions_aux([Row | Other_rows], Length) :-
 	length(Row, Length_x),
 	Length = Length_x,
-	verify_board_dimensions(Other_rows, Length).
-verify_board_dimensions([], _Length).
+	verify_board_dimensions_aux(Other_rows, Length).
+verify_board_dimensions_aux([], _Length).
 
 /* Play computer-computer (one set of moves) */
 play(cc, Mode) :-
