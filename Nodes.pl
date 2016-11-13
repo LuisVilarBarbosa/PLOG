@@ -681,12 +681,12 @@ verify_blocked(Board, Node, X, Y) :-
 	(verify_blocked_up(Board, Enemy_unit, X, Y); verify_blocked_up(Board, Enemy_node, X, Y)),
 	(verify_blocked_down(Board, Enemy_unit, X, Y); verify_blocked_down(Board, Enemy_node, X, Y)).
 
-/* Verify if one side of the [X,Y] piece is blocked by an Enemy_unit */
+/* Verify if one side of the [X,Y] piece is blocked by an Enemy_piece */
 /* If 'X2' or 'Y2' out of borders 'yes' will be returned, as desired (different from verify_not_blocked_*) */
-verify_blocked_left(Board, Enemy_unit, X, Y) :- X2 is X - 1, (X2 < 1; (nth1(Y, Board, Row), nth1(X2, Row, Enemy_unit))).
-verify_blocked_right(Board, Enemy_unit, X, Y) :- X2 is X + 1, (nth1(Y, Board, Row), length(Row, Length_x), (X2 > Length_x; nth1(X2, Row, Enemy_unit))).
-verify_blocked_up(Board, Enemy_unit, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Row), nth1(X, Row, Enemy_unit))).
-verify_blocked_down(Board, Enemy_unit, X, Y) :- Y2 is Y + 1, length(Board, Length_y), (Y2 > Length_y; (nth1(Y2, Board, Row), nth1(X, Row, Enemy_unit))).
+verify_blocked_left(Board, Enemy_piece, X, Y) :- X2 is X - 1, (X2 < 1; (nth1(Y, Board, Row), nth1(X2, Row, Enemy_piece))).
+verify_blocked_right(Board, Enemy_piece, X, Y) :- X2 is X + 1, (nth1(Y, Board, Row), length(Row, Length_x), (X2 > Length_x; nth1(X2, Row, Enemy_piece))).
+verify_blocked_up(Board, Enemy_piece, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Row), nth1(X, Row, Enemy_piece))).
+verify_blocked_down(Board, Enemy_piece, X, Y) :- Y2 is Y + 1, length(Board, Length_y), (Y2 > Length_y; (nth1(Y2, Board, Row), nth1(X, Row, Enemy_piece))).
 
 /* Find the other player */
 next_player(Player, Next) :- player(Player), player(Next), Player \= Next.
@@ -702,8 +702,7 @@ set_piece([Row | Other_rows], X, Y, New_piece, [Row | Other_new_rows]) :-
 	set_piece(Other_rows, X, Next_Y, New_piece, Other_new_rows).
 set_piece([Row | Other_rows], X, 1, New_piece, [New_row | Other_new_rows]) :-
 	set_cell(X, New_piece, Row, New_row),
-	Next_Y is 0,
-	set_piece(Other_rows, X, Next_Y, New_piece, Other_new_rows).
+	set_piece(Other_rows, X, 0, New_piece, Other_new_rows).
 set_piece([], _X, _Y, _New_piece, []).
 
 /* Change a piece of the Row, remaking it cell by cell */
@@ -713,6 +712,5 @@ set_cell(X, New_piece, [Piece | Rest_row], [Piece | Rest_new_row]) :-
 	Next_X is X - 1,
 	set_cell(Next_X, New_piece, Rest_row, Rest_new_row).
 set_cell(1, New_piece, [_Piece | Rest_row], [New_piece | Rest_new_row]) :-
-	Next_X is 0,
-	set_cell(Next_X, New_piece, Rest_row, Rest_new_row).
+	set_cell(0, New_piece, Rest_row, Rest_new_row).
 set_cell(_X, _New_piece, [], []).
