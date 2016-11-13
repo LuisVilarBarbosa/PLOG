@@ -78,11 +78,12 @@ final_board([
 /* State */
 state(_Player, _Board).
 
-/* Display */
+/* Display (if the number of rows or columns is higher than 9 the indexes can be wrongly placed) */
 display_board(Board) :-
-	length(Board, Length),	/* it is considered less than 10, otherwise the indexes will be wrongly placed */
+	nth1(1, Board, Row),
+	length(Row, Length_x),
 	write('  '),
-	display_board_cols_indexes(1, Length),
+	display_board_cols_indexes(1, Length_x),
 	nl,
 	display_board_rows(Board, Board, 1),
 	nl,
@@ -232,6 +233,7 @@ check_game_type(Type) :-
 /* Verify if all Rows have the same length */
 verify_board_dimensions([Row | Other_rows]) :-
 	length(Row, Length),
+	Length > 1,
 	verify_board_dimensions_aux(Other_rows, Length).
 
 /* Verify if the all the rows have the same dimension of the first row */
@@ -491,9 +493,11 @@ get_piece(Board, X, Y, Piece) :-
 verify_inside_borders(Board, X, Y) :-
 	X >= 1,
 	Y >= 1,
-	length(Board, Length),
-	Y =< Length,
-	X =< Length.
+	length(Board, Length_y),
+	Y =< Length_y,
+	nth1(1, Board, Row),
+	length(Row, Length_x),
+	X =< Length_x.
 
 /* Check if the Piece belongs to the Player (Unit or Node) */
 verify_piece_player(Board, Player, Piece_x, Piece_y, Piece) :-
@@ -585,21 +589,22 @@ select_best_aux(_Player, [], [], 100000000000000).	/* dangerous value (limiting)
 /* Calculate the sum of the distances of all the Units of the Player regarding the enemy Node */
 quality(Board, Player, Value) :-
 	global_check_signal(Board, Player, Num_signal),	/* number of Player Units with signal */
-	length(Board, Length),
+	length(Board, Length_y),
 	((Player = p1, Enemy_node = n2, My_unit = u1); (Player = p2, Enemy_node = n1, My_unit = u2)),
 	get_piece(Board, Node_x, Node_y, Enemy_node),
-	quality_aux_1(Board, My_unit, Length, Length, Node_x, Node_y, 0, Sum_distances),
+	quality_aux_1(Board, My_unit, Length_y, Node_x, Node_y, 0, Sum_distances),
 	Value is Sum_distances / Num_signal.
 
 /* Calculate the distances desired by 'quality' row by row */
-quality_aux_1(Board, Piece, Max_x, Y, Node_x, Node_y, Temp_distance, Sum_distances) :-
+quality_aux_1(Board, Piece, Y, Node_x, Node_y, Temp_distance, Sum_distances) :-
 	Y >= 1,
 	nth1(Y, Board, Row),
-	quality_aux_2(Row, Piece, Max_x, Y, Node_x, Node_y, 0, Temp_distance2),
+	length(Row, Length_x),
+	quality_aux_2(Row, Piece, Length_x, Y, Node_x, Node_y, 0, Temp_distance2),
 	Y2 is Y - 1,
 	Temp_distance3 is Temp_distance + Temp_distance2,
-	quality_aux_1(Board, Piece, Max_x, Y2,  Node_x, Node_y, Temp_distance3, Sum_distances).
-quality_aux_1(_Board, _Piece, _Max_x, 0, _Node_x, _Node_y, Sum_distances, Sum_distances).
+	quality_aux_1(Board, Piece, Y2,  Node_x, Node_y, Temp_distance3, Sum_distances).
+quality_aux_1(_Board, _Piece, 0, _Node_x, _Node_y, Sum_distances, Sum_distances).
 
 /* Calculate the distances desired by 'quality_aux_1' piece by piece */
 quality_aux_2(Row, Piece, X, Y, Node_x, Node_y, Temp_distance, Sum_distances) :-
