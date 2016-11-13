@@ -517,13 +517,34 @@ burst_move(Player, Mode, Board, Best) :-
 
 /* Find the position of the Player pieces (Units and Nodes) */
 find_player_pieces(Board, Player, [X, Y]) :-
-	verify_piece_player(Board, Player, X, Y, _Piece).
+	verify_piece_player(Board, Player, X, Y, _Piece),
+	verify_not_blocked(Board, X, Y).
+
+/* Verify if the piece in [X, Y] is blocked by 'sp', i.e., it is not blocked */
+verify_not_blocked(Board, X, Y) :-
+	(verify_blocked_left(Board, sp, X, Y);
+	verify_blocked_right(Board, sp, X, Y);
+	verify_blocked_up(Board, sp, X, Y);
+	verify_blocked_down(Board, sp, X, Y)).
 
 /* Calculate the best move to apply to a specific piece */
 best_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
 	findall(Aux_board, (rule(_Move, Player, Piece_x, Piece_y, Board, Aux_board)), Possible_boards),
 	(
-		(Mode = easy, (random_member(Best, Possible_boards); Best = Board));
+		(
+			Mode = easy,
+			(
+				(
+					Possible_boards \= [],
+					select_best(Player, Possible_boards, Real_best),	/* 'select_best' makes Best = [], if Possible_boards = [] */
+					append(La, [Real_best|Lb], Possible_boards),
+					append(La, Lb, New_possible_boards),
+					New_possible_boards \= [],
+					select_best(Player, New_possible_boards, Best)	/* Best is second best */
+				);
+				Best = []
+			)
+		);
 		(Mode = hard, select_best(Player, Possible_boards, Best))
 	).
 
