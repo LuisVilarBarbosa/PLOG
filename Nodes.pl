@@ -522,10 +522,17 @@ find_player_pieces(Board, Player, [X, Y]) :-
 
 /* Verify if the piece in [X, Y] is blocked by 'sp', i.e., it is not blocked */
 verify_not_blocked(Board, X, Y) :-
-	(verify_blocked_left(Board, sp, X, Y);
-	verify_blocked_right(Board, sp, X, Y);
-	verify_blocked_up(Board, sp, X, Y);
-	verify_blocked_down(Board, sp, X, Y)).
+	(verify_not_blocked_left(Board, X, Y);
+	verify_not_blocked_right(Board, X, Y);
+	verify_not_blocked_up(Board, X, Y);
+	verify_not_blocked_down(Board, X, Y)).
+
+/* Verify if one side of the [X,Y] piece is not blocked by anything (if blocked by 'sp' is free to move) */
+/* If 'X2' or 'Y2' out of borders 'no' will be returned, as desired (different from verify_blocked_*) */
+verify_not_blocked_left(Board, X, Y) :- X2 is X - 1, nth1(Y, Board, Row), nth1(X2, Row, sp).
+verify_not_blocked_right(Board, X, Y) :- X2 is X + 1, nth1(Y, Board, Row), nth1(X2, Row, sp).
+verify_not_blocked_up(Board, X, Y) :- Y2 is Y - 1, nth1(Y2, Board, Row), nth1(X, Row, sp).
+verify_not_blocked_down(Board, X, Y) :- Y2 is Y + 1, nth1(Y2, Board, Row), nth1(X, Row, sp).
 
 /* Calculate the best move to apply to a specific piece */
 best_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
@@ -539,8 +546,10 @@ best_move(Player, Mode, Board, Piece_x, Piece_y, Best) :-
 					select_best(Player, Possible_boards, Real_best),	/* 'select_best' makes Best = [], if Possible_boards = [] */
 					append(La, [Real_best|Lb], Possible_boards),
 					append(La, Lb, New_possible_boards),
-					New_possible_boards \= [],
-					select_best(Player, New_possible_boards, Best)	/* Best is second best */
+					(
+						(New_possible_boards = [], nth1(1, Possible_boards, Best));	/* Best is really the best */
+						select_best(Player, New_possible_boards, Best)	/* Best is second best */
+					)
 				);
 				Best = []
 			)
@@ -620,7 +629,7 @@ verify_blocked(Board, Node, X, Y) :-
 	(verify_blocked_down(Board, Enemy_unit, X, Y); verify_blocked_down(Board, Enemy_node, X, Y)).
 
 /* Verify if one side of the [X,Y] piece is blocked by an Enemy_unit */
-/* If 'X2' or 'Y2' out of borders 'yes' will be returned, as desired */
+/* If 'X2' or 'Y2' out of borders 'yes' will be returned, as desired (different from verify_not_blocked_*) */
 verify_blocked_left(Board, Enemy_unit, X, Y) :- X2 is X - 1, (X2 < 1; (nth1(Y, Board, Row), nth1(X2, Row, Enemy_unit))).
 verify_blocked_right(Board, Enemy_unit, X, Y) :- X2 is X + 1, (nth1(Y, Board, Row), length(Row, Length_x), (X2 > Length_x; nth1(X2, Row, Enemy_unit))).
 verify_blocked_up(Board, Enemy_unit, X, Y) :- Y2 is Y - 1, (Y2 < 1; (nth1(Y2, Board, Row), nth1(X, Row, Enemy_unit))).
