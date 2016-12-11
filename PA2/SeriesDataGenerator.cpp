@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -29,9 +30,10 @@ bool displayable_any_times_per_day()
 	return true;
 }
 
-size_t day()
+string day()
 {
-	return 1 + (rand() % 31);
+	vector<string> week = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+	return week[rand() % week.size()];
 }
 
 string hour()
@@ -62,7 +64,7 @@ void generateSlots(size_t maxNumSeries, size_t maxNumSlots)
 
 		size_t numSlots = 1 + (rand() % maxNumSlots);
 		for (size_t j = 1; j <= numSlots && j <= maxNumSlots; j++)
-			out << "slot(" << id << ", " << day() << ", " << hour() << ", " << numVotes() << ").\n";
+			out << "slot(" << id << ", '" << day() << "', " << hour() << ", " << numVotes() << ").\n";
 		out << endl;
 	}
 
