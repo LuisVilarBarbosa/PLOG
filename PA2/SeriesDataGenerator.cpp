@@ -46,7 +46,7 @@ size_t numVotes()
 	return rand();
 }
 
-void generateSlots(size_t maxNumSeries, size_t maxNumSlots)
+void generateSlots(size_t maxNumSeries, size_t maxNumPreferences, size_t maxNumSlots)
 {
 	ifstream in("series.txt");
 	if (!in.is_open()) { cerr << "Unable to open the input file.\n"; return; }
@@ -54,7 +54,8 @@ void generateSlots(size_t maxNumSeries, size_t maxNumSlots)
 	if (!out.is_open()) { cerr << "Unable to open the output file.\n"; in.close(); return; }
 	string serieName;
 	
-	for (size_t id = 1; getline(in, serieName) && id <= maxNumSeries; id++) {
+	size_t id;
+	for (id = 1; getline(in, serieName) && id <= maxNumSeries; id++) {
 		if (serieName == "") {
 			id--;
 			continue;
@@ -62,11 +63,15 @@ void generateSlots(size_t maxNumSeries, size_t maxNumSlots)
 
 		out << "series(" << id << ", '" << serieName << "', " << price() << ", " << duration() << ", " << restricted() << ", " << displayable_any_times_per_day() << ").\n";
 
-		size_t numSlots = 1 + (rand() % maxNumSlots);
-		for (size_t j = 1; j <= numSlots && j <= maxNumSlots; j++)
-			out << "slot(" << id << ", '" << day() << "', " << hour() << ", " << numVotes() << ").\n";
+		size_t numPreferences = 1 + (rand() % maxNumPreferences);
+		for (size_t j = 1; j <= numPreferences; j++)
+			out << "preference(" << id << ", '" << day() << "', " << hour() << ", " << numVotes() << ").\n";
 		out << endl;
 	}
+
+	size_t numSlots = 1 + ((rand() % (id - 1)) % maxNumSlots); // The number of available series is always greater than the number of slots to fill.
+	for (size_t i = 1; i <= numSlots; i++)
+		out << "slot('" << day() << "', " << hour() << ").\n";
 
 	in.close();
 	out.close();
@@ -76,16 +81,19 @@ int main()
 {
 	srand((unsigned)time(NULL));
 
-	string maxNumSeriesStr, maxNumSlotsStr;
+	string maxNumSeriesStr, maxNumPreferencesStr, maxNumSlotsStr;
 	cout << "Number of series (-1 to all): ";
 	getline(cin, maxNumSeriesStr);
-	cout << "Maximum number of slots per serie (-1 to unlimited): ";
+	cout << "Maximum number of preferences per serie (-1 to unlimited): ";
+	getline(cin, maxNumPreferencesStr);
+	cout << "Maximum number of slots (-1 to unlimited): ";
 	getline(cin, maxNumSlotsStr);
 
-	int maxNumSeries, maxNumSlots;
+	int maxNumSeries, maxNumPreferences, maxNumSlots;
 	try {
 		// ignores letters after number
 		maxNumSeries = stoi(maxNumSeriesStr, NULL, 10);
+		maxNumPreferences = stoi(maxNumPreferencesStr, NULL, 10);
 		maxNumSlots = stoi(maxNumSlotsStr, NULL, 10);
 	}
 	catch (invalid_argument e) {
@@ -100,10 +108,12 @@ int main()
 
 	if (maxNumSeries == -1)
 		maxNumSeries = UINT_MAX;
+	if (maxNumPreferences == -1)
+		maxNumPreferences = UINT_MAX;
 	if (maxNumSlots == -1)
 		maxNumSlots = UINT_MAX;
 
-	generateSlots(maxNumSeries, maxNumSlots);
+	generateSlots(maxNumSeries, maxNumPreferences, maxNumSlots);
 
 	return 0;
 }
