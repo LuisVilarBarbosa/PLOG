@@ -5,6 +5,11 @@
 
 using namespace std;
 
+size_t price()
+{
+	return 1000 + rand();
+}
+
 size_t duration() // Duration is multiple of 30
 {
 	return 30 * (1 + rand() % 4);
@@ -53,7 +58,7 @@ void generateSlots(size_t maxNumSeries, size_t maxNumSlots)
 			continue;
 		}
 
-		out << "series(" << id << ", '" << serieName << "', " << duration() << ", " << restricted() << ", " << displayable_any_times_per_day() << ").\n";
+		out << "series(" << id << ", '" << serieName << "', " << price() << ", " << duration() << ", " << restricted() << ", " << displayable_any_times_per_day() << ").\n";
 
 		size_t numSlots = 1 + (rand() % maxNumSlots);
 		for (size_t j = 1; j <= numSlots && j <= maxNumSlots; j++)
