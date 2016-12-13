@@ -50,13 +50,13 @@ void generateSlots(size_t maxNumSeries, size_t maxNumPreferences, size_t maxNumS
 {
 	ifstream in("series.txt");
 	if (!in.is_open()) { cerr << "Unable to open the input file.\n"; return; }
-	ofstream out("data.txt");
+	ofstream out("data.pl");
 	if (!out.is_open()) { cerr << "Unable to open the output file.\n"; in.close(); return; }
 	string serieName;
 	
 	size_t id;
 	for (id = 1; getline(in, serieName) && id <= maxNumSeries; id++) {
-		if (serieName == "") {
+		if (serieName == "" || serieName.find("'") != string::npos) {	// Prolog uses "'" to start and end strings (bad idea to have that in a name)
 			id--;
 			continue;
 		}
