@@ -103,19 +103,16 @@ int main()
 {
 	srand((unsigned)time(NULL));
 
-	string maxNumSeriesStr, maxNumPreferencesStr, maxNumSlotsStr;
+	string maxNumSeriesStr, maxNumSlotsStr;
 	cout << "Number of series (-1 to all): ";
 	getline(cin, maxNumSeriesStr);
-	cout << "Maximum number of preferences per serie (-1 to unlimited): ";
-	getline(cin, maxNumPreferencesStr);
 	cout << "Maximum number of slots (-1 to unlimited): ";
 	getline(cin, maxNumSlotsStr);
 
-	int maxNumSeries, maxNumPreferences, maxNumSlots;
+	int maxNumSeries, maxNumSlots;
 	try {
 		// ignores letters after number
 		maxNumSeries = stoi(maxNumSeriesStr, NULL, 10);
-		maxNumPreferences = stoi(maxNumPreferencesStr, NULL, 10);
 		maxNumSlots = stoi(maxNumSlotsStr, NULL, 10);
 	}
 	catch (invalid_argument e) {
@@ -133,8 +130,6 @@ int main()
 
 	if (maxNumSeries == -1)
 		maxNumSeries = UINT_MAX;
-	if (maxNumPreferences == -1)
-		maxNumPreferences = UINT_MAX;
 	if (maxNumSlots == -1)
 		maxNumSlots = UINT_MAX;
 
